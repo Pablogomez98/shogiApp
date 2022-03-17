@@ -20335,9 +20335,10 @@ const Shogi = {
 
       if ((target_row >= 6 && ctx.currentPlayer == 0 || target_row <= 2 && ctx.currentPlayer == 1 || initial_row >= 6 && ctx.currentPlayer == 0 || initial_row <= 2 && ctx.currentPlayer == 1) && player_piece != "KING" && player_piece != "G" && arised_piece != "A") {
         arisePiece(G, ctx.currentPlayer.concat(player_piece), target_row, target_column);
-        /*if (confirm("Arise piece?")) {
-          arisePiece(G,ctx.currentPlayer.concat(player_piece),target_row,target_column);
-        }*/
+
+        if (confirm("Arise piece?")) {
+          arisePiece(G, ctx.currentPlayer.concat(player_piece), target_row, target_column);
+        }
       } ///////////////////////////////////////////////////////////////////
 
 
