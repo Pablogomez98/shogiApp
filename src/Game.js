@@ -86,6 +86,7 @@ export const Shogi = {
           }*/
         }
         ///////////////////////////////////////////////////////////////////
+        if(highlight!=null){highlight.className = "cell";}
 
         
       },

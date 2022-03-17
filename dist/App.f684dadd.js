@@ -20340,6 +20340,10 @@ const Shogi = {
         }*/
       } ///////////////////////////////////////////////////////////////////
 
+
+      if (highlight != null) {
+        highlight.className = "cell";
+      }
     },
     revivePiece: (G, ctx, target_row, target_column, player_piece, highlight = None) => {
       /////////////////////////// MOVIMIENTO //////////////////////////
@@ -23220,7 +23224,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "52189" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "61875" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
