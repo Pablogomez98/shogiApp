@@ -4,20 +4,18 @@
   "description": "",
   "homepage": "./",
   "main": "App.js",
-  
   "scripts": {
     "build": "parcel build index.html --out-dir build",
     "start": "parcel index.html --open",
     "test": "echo \"Error: no test specified\" && exit 1"
-    
   },
-  
   "browserslist": "defaults and supports async-functions",
   "keywords": [],
   "author": "Pablo Gómez Gracia",
   "license": "ISC",
   "dependencies": {
-    "boardgame.io": "^0.49.0"
+    "boardgame.io": "^0.49.0",
+    "node-rules": "^7.1.0"
   },
   "devDependencies": {
     "parcel-bundler": "^1.12.5"

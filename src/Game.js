@@ -23,9 +23,10 @@ export const Shogi = {
     moves: {
       movePiece: (G, ctx, initial_row,initial_column, target_row,target_column,player_piece,highlight=null) => {
         /////////////////////////// MOVIMIENTO //////////////////////////
-        //console.log("Player: " + ctx.currentPlayer + " wants to move " + player_piece + " de " + initial_row+ " a " + target_row )
-        let possible_cells = getPossibleCells(G.cells,initial_row,initial_column,ctx.currentPlayer.concat(player_piece))
-        //console.log("Movimientos validos: " + possible_cells)
+        //console.log("Player: " + ctx.currentPlayer + " wants to move " + player_piece + " de " + initial_row+ " a " + target_row)
+        //console.log("Y de " + initial_column + " a " + target_column)
+        let possible_cells = getPossibleCells(G.cells,initial_row,initial_column,player_piece,ctx.currentPlayer)
+        //console.log(possible_cells)
 
         var valid_move = false;
         var row = G.cells[initial_row];
@@ -90,9 +91,11 @@ export const Shogi = {
 
         
       },
-      revivePiece: (G, ctx, target_row,target_column,player_piece,highlight=None) => {
+
+      revivePiece: (G, ctx, target_row,target_column,player_piece,highlight=null) => {
         /////////////////////////// MOVIMIENTO //////////////////////////
-        let possible_cells = getPossibleRevive(G.cells,player_piece)
+        let possible_cells = getPossibleRevive(G.cells,player_piece.substr(1,4),player_piece.substr(0,1))
+        console.log("pos: " + possible_cells)
         var valid_move = false;
         var new_row = G.cells[target_row];
 
@@ -127,7 +130,7 @@ export const Shogi = {
           if(still_check){return INVALID_MOVE}      
         ////////////////////////////////////////////////////////////////    
         isCheck(G,ctx.currentPlayer)
-        highlight.className = "cell";
+        if(highlight!=null){highlight.className = "cell";}
       }
     
     },
@@ -254,16 +257,15 @@ export const Shogi = {
       else if(player_piece=="P"){new_row[target_column]=pieces.ARISED_GOTE_PAWN}
     }
   }
-  export function getPossibleCells(cells,row_id,column_id,piece){
-    if(piece.substr(0,1)=="0"){return getPossibleCellsSente(cells,row_id,column_id,piece)}
-    if(piece.substr(0,1)=="1"){return getPossibleCellsGote(cells,row_id,column_id,piece)}
+  export function getPossibleCells(cells,row_id,column_id,piece,player){
+    //console.log("get" + cells + row_id + column_id + piece + player)
+    if(player=="0"){return getPossibleCellsSente(cells,row_id,column_id,piece)}
+    if(player=="1"){return getPossibleCellsGote(cells,row_id,column_id,piece)}
 
   }
   function getPossibleCellsSente(cells,row_id,column_id,piece){
     var possible_cells = [];
     var row = 0;
-    piece = piece.substr(1,4)
- 
         if(piece=="P"){ 
           let next_row = cells[row_id+1];
           if(row_id<8 && (next_row[column_id]==null || next_row[column_id].substr(0,1)=="1")){
@@ -623,13 +625,12 @@ export const Shogi = {
   function getPossibleCellsGote(cells,row_id,column_id,piece){
     var possible_cells = [];
     var row = 0;
-    piece = piece.substr(1,4)
         if(piece=="P"){ 
           let next_row = cells[row_id-1];
           if(row_id>0 && (next_row[column_id]==null || next_row[column_id].substr(0,1)=="0")){
             let possible_cell = (row_id-1).toString().concat(column_id);
             possible_cells.push(possible_cell)
-            //console.log("Pawn moves to: " + possible_cell)
+            //console.log(possible_cells)
           }
            
           
@@ -988,25 +989,26 @@ export const Shogi = {
   
         return possible_cells;
   }
-  export function getPossibleRevive(cells,piece){
+  export function getPossibleRevive(cells,piece_type,player){
     var pawn_free_columns = []
     var possible_revive_cells = []
-    if(piece.substr(1,2)=="P"){pawn_free_columns = getFreePawnColumns(cells,piece.substr(0,1))}
+  
+    if(piece_type=="P"){pawn_free_columns = getFreePawnColumns(cells,player)}
     for (let [row_id,row] of cells.entries()){
       for (let [column_id,cell] of row.entries()){
-        if(!(piece.substr(1,2)=="P" || piece.substr(1,2)=="K")&& cell==null){//cualquiera}
+        if(!(piece_type=="P" || piece_type=="K")&& cell==null){//cualquiera}
         possible_revive_cells.push(row_id.toString().concat(column_id.toString()))
         }
         else if(cell==null){
-          if(piece.substr(1,2)=="P"){
+          if(piece_type=="P"){
             if(pawn_free_columns!=null && pawn_free_columns.indexOf(column_id)>=0){
-              if(piece.substr(0,1)=="0" && row_id<8){possible_revive_cells.push(row_id.toString().concat(column_id.toString()))}
-              if(piece.substr(0,1)=="1" && row_id>0){possible_revive_cells.push(row_id.toString().concat(column_id.toString()))}
+              if(player=="0" && row_id<8){possible_revive_cells.push(row_id.toString().concat(column_id.toString()))}
+              if(player=="1" && row_id>0){possible_revive_cells.push(row_id.toString().concat(column_id.toString()))}
             }
           }
-          if(piece.substr(1,2)=="K"){
-            if(piece.substr(0,1)=="0" && row_id<7){possible_revive_cells.push(row_id.toString().concat(column_id.toString()))}
-            if(piece.substr(0,1)=="1" && row_id>1){possible_revive_cells.push(row_id.toString().concat(column_id.toString()))}
+          if(piece_type=="K"){
+            if(player=="0" && row_id<7){possible_revive_cells.push(row_id.toString().concat(column_id.toString()))}
+            if(player=="1" && row_id>1){possible_revive_cells.push(row_id.toString().concat(column_id.toString()))}
           }
         }
         
@@ -1037,7 +1039,7 @@ export const Shogi = {
     var player = player_and_piece.substr(0,1)
     var player_piece = player_and_piece.substr(1,4)
     //console.log("Player: " + player + " wants to move " + player_piece)
-    let possible_cells = getPossibleCells(G_clone.cells,initial_row,initial_column,player_and_piece)
+    let possible_cells = getPossibleCells(G_clone.cells,initial_row,initial_column,player_piece,player)
     //console.log("Movimientos validos: " + possible_cells)
     var valid_move = false;
     var row = G_clone.cells[initial_row];
@@ -1094,7 +1096,7 @@ export const Shogi = {
   function revivePieceToAvoidMate (G,target_row,target_column,player_and_piece){
     /////////////////////////// MOVIMIENTO //////////////////////////
     const G_clone = JSON.parse(JSON.stringify(G));
-    let possible_cells = getPossibleRevive(G_clone.cells,player_and_piece)
+    let possible_cells = getPossibleRevive(G_clone.cells,player_and_piece.substr(1,4),player_and_piece.substr(0,1))
     var valid_move = false;
     var new_row = G_clone.cells[target_row];
     var player = player_and_piece.substr(0,1)
@@ -1133,7 +1135,7 @@ export const Shogi = {
           if(row[j]!=null){
             players_piece = row[j].substr(0,1)
             if(players_piece==player){
-              possible_cells = getPossibleCells(G.cells,i,j,row[j]);
+              possible_cells = getPossibleCells(G.cells,i,j,row[j].substr(1,4),row[j].substr(0,1));
               possible_cells.forEach(cell=>{
                 if(player=="0" && cell.substr(0,1)==G.gote_king_position.substr(0,1) && cell.substr(1,2)==G.gote_king_position.substr(1,2)){check=true}
                 if(player=="1" && cell.substr(0,1)==G.sente_king_position.substr(0,1) && cell.substr(1,2)==G.sente_king_position.substr(1,2)){check=true}
@@ -1158,7 +1160,7 @@ export const Shogi = {
         let row = G.cells[i]
         for(let j=0;j<G.cells[i].length;j++){
           if(row[j]!=null && row[j].substr(0,1)!=ctx.currentPlayer){
-            possible_cells = getPossibleCells(G.cells,i,j,row[j]);   
+            possible_cells = getPossibleCells(G.cells,i,j,row[j].substr(1,4),row[j].substr(0,1));   
             possible_cells.forEach(cell=>{
               //Analizar si un movimiento evita el jaque mate. Para ello utilizo un método parecido al movePiece
               var saved = movePieceToAvoidMate(G,row[j],i,j,cell.substr(0,1),cell.substr(1,2))
@@ -1175,7 +1177,7 @@ export const Shogi = {
       if(ctx.currentPlayer=="0"){index=1;player="1"}
       else{index=0;player="0"}
       for(let piece of all_captured[index]){
-        possible_cells = getPossibleRevive(G.cells,player.concat(piece))
+        possible_cells = getPossibleRevive(G.cells,piece,player)
         possible_cells.forEach(cell=>{
           //Analizar si un colocar una pieza evita el jaque mate. Para ello utilizo un método parecido al revivePiece
           var saved = revivePieceToAvoidMate(G,cell.substr(0,1),cell.substr(1,4),player.concat(piece))
