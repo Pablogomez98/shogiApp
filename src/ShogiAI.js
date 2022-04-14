@@ -1,4 +1,5 @@
 import {getPossibleCells,getPossibleRevive} from './Game.js'
+import GenshiBougin from './Openings.js'
 
 /* Creating Rule Engine instance */
 var NodeRules = require('node-rules');
@@ -11,12 +12,8 @@ var state
 //////////FACTS///////////////////
 
 
-
-
-
-
 //////////RULES/////////////////
-var rules = [
+var rules2 = [
     {///////playBoardPiece
         "condition": function(R) {	
         //console.log("playBoard")
@@ -39,7 +36,7 @@ var rules = [
         R.next();
     }
     },
-    {
+    {/////////playHandPiece
         "condition": function(R) {	
             //console.log(this);
             var possible_cells = getPossibleRevive(G.cells,this.piece,this.player)
@@ -62,43 +59,16 @@ var rules = [
     }
 
 ];
-
-var playBoardPiece2 = {
-    "condition": function(R) {	
-        //console.log("playBoard2")
-        //console.log(this);
-        var possible_cells = getPossibleCells(G.cells,parseInt(this.row),parseInt(this.column),this.piece,this.player)
-        //console.log(possible_cells)
-        R.when(possible_cells!="" && this.player==state.ctx.currentPlayer && this.isHand=="0" && this.piece=="G");
-    },
-    "consequence": function(R) {
-        //console.log("move")
-        var possible_cells = getPossibleCells(G.cells,parseInt(this.row),parseInt(this.column),this.piece,this.player)
-        var rand = parseInt(Math.random() * (possible_cells.length - 0) + 0);
-        var new_position = possible_cells[rand]
-        var row = new_position.substr(0,1)
-        var column = new_position.substr(1,1)
-        //this.result = true;
-        this.reason = this.row+this.column+row+column+this.piece
-        this.move = row+column
-        //console.log(this);
-        R.next();
-    }
-};
-
+////////////////////////////////////////////////////////////////////////////////////////
 /////submit of rules////
-//rules.push(playBoardPiece)
-//rules.push(playBoardPiece2)
-//rules.push(playHandPiece)
-/* Register Rule */
-var R = new RuleEngine(rules,{ignoreFactChanges:true});
-
-
-
+//var rules = GenshiBougin
+//console.log("GenshiBoushin: ")
+var R = new RuleEngine(rules2,{ignoreFactChanges:true});
 /* Run engine for each fact */
 export async function executeEngine(gameState,fn){
     state = gameState
     G = state.G
+    module.exports = state.G
     var result_facts =  function func(){
         return new Promise((resolve ,reject)=>{
             submitFacts(function(result){
@@ -115,7 +85,7 @@ export async function executeEngine(gameState,fn){
             let m = await new Promise(resolve => 
                 R.execute(fact, function (data) {
                     if (data.move!=null) {
-                        //console.log("Movimiento: " + data.move)
+                        console.log("Movimiento: " + data.move)
                         let move_info = []                  
                         move_info.push(data.row)
                         move_info.push(data.column)
@@ -171,12 +141,46 @@ function submitFacts(fn){
 }
 function createFact(piece_type,row_id,column_id,player_id,hand){
     var factName = player_id.concat(piece_type).concat(row_id.toString()).concat(column_id.toString()).concat(hand.toString())
+    var value = getValueOfPiece(piece_type,hand)
     var factName = {
         "piece": piece_type.toString(),
         "player": player_id.toString(),
         "row": row_id.toString(),
         "column" : column_id.toString(),
-        "isHand" : hand.toString()
+        "isHand" : hand.toString(),
+        "value" : value.toString()
     }
     return factName
+}
+
+function getValueOfPiece(piece,isHand){
+    var value
+    if(isHand){
+        if(piece=="P"){value=1.15}
+        if(piece=="L"){value=4.8}
+        if(piece=="K"){value=5.1}
+        if(piece=="S"){value=7.2}
+        if(piece=="G"){value=7.8}
+        if(piece=="B"){value=11.1}
+        if(piece=="R"){value=12.70} 
+    }
+    else{
+        if(piece=="P"){value=1}
+        if(piece=="L"){value=4.3}
+        if(piece=="K"){value=4.5}
+        if(piece=="S"){value=6.4}
+        if(piece=="G"){value=6.9}
+        if(piece=="B"){value=8.9}
+        if(piece=="R"){value=10.40}
+        if(piece=="KING"){value=1000000000}
+
+        if(piece=="AP"){value=4.2}
+        if(piece=="AL"){value=6.3}
+        if(piece=="AK"){value=6.4}
+        if(piece=="AS"){value=6.7}
+        if(piece=="AB"){value=11.5}
+        if(piece=="AR"){value=13} 
+    }
+
+    return value
 }

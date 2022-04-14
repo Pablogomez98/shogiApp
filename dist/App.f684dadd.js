@@ -21755,7 +21755,43 @@ module.exports = "/rook_r.855cfcc3.png";
 module.exports = "/sente_king_r.a8eee47d.png";
 },{}],"src/img/gote_king_r.png":[function(require,module,exports) {
 module.exports = "/gote_king_r.b579bbbc.png";
-},{}],"node_modules/lodash.isequal/index.js":[function(require,module,exports) {
+},{}],"src/Openings.js":[function(require,module,exports) {
+"use strict";
+
+var _Game = require("./Game.js");
+
+var _Openings = _interopRequireDefault(require("./Openings.js"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+//export var GenshiBouginRules = []
+var GenshiBougin = [{
+  ///////playBoardPiece
+  "condition": function (R) {
+    console.log("playBoard");
+    console.log(this);
+    console.log(_Openings.default.cells);
+    var possible_cells = (0, _Game.getPossibleCells)(_Openings.default.cells, parseInt(this.row), parseInt(this.column), this.piece, this.player); //console.log(possible_cells)
+
+    R.when(possible_cells != "" && this.player == state.ctx.currentPlayer && this.isHand == "0");
+  },
+  "consequence": function (R) {
+    console.log("move");
+    var possible_cells = (0, _Game.getPossibleCells)(_Openings.default.cells, parseInt(this.row), parseInt(this.column), this.piece, this.player);
+    var rand = parseInt(Math.random() * (possible_cells.length - 0) + 0);
+    var new_position = possible_cells[rand];
+    var row = new_position.substr(0, 1);
+    var column = new_position.substr(1, 1); //this.result = true;
+
+    this.reason = this.row + this.column + row + column + this.piece;
+    this.move = row + column; //console.log(this);
+
+    R.next();
+  }
+}]; //GenshiBouginRules.push(GenshiBougin)
+
+module.exports = GenshiBougin;
+},{"./Game.js":"src/Game.js","./Openings.js":"src/Openings.js"}],"node_modules/lodash.isequal/index.js":[function(require,module,exports) {
 var global = arguments[3];
 
 /**
@@ -25554,6 +25590,10 @@ exports.executeEngine = executeEngine;
 
 var _Game = require("./Game.js");
 
+var _Openings = _interopRequireDefault(require("./Openings.js"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
 /* Creating Rule Engine instance */
 var NodeRules = require('node-rules');
 
@@ -25564,7 +25604,7 @@ var G;
 var state; //////////FACTS///////////////////
 //////////RULES/////////////////
 
-var rules = [{
+var rules2 = [{
   ///////playBoardPiece
   "condition": function (R) {
     //console.log("playBoard")
@@ -25587,6 +25627,7 @@ var rules = [{
     R.next();
   }
 }, {
+  /////////playHandPiece
   "condition": function (R) {
     //console.log(this);
     var possible_cells = (0, _Game.getPossibleRevive)(G.cells, this.piece, this.player); //console.log(possible_cells)
@@ -25606,36 +25647,12 @@ var rules = [{
 
     R.next();
   }
-}];
-var playBoardPiece2 = {
-  "condition": function (R) {
-    //console.log("playBoard2")
-    //console.log(this);
-    var possible_cells = (0, _Game.getPossibleCells)(G.cells, parseInt(this.row), parseInt(this.column), this.piece, this.player); //console.log(possible_cells)
+}]; ////////////////////////////////////////////////////////////////////////////////////////
+/////submit of rules////
+//var rules = GenshiBougin
+//console.log("GenshiBoushin: ")
 
-    R.when(possible_cells != "" && this.player == state.ctx.currentPlayer && this.isHand == "0" && this.piece == "G");
-  },
-  "consequence": function (R) {
-    //console.log("move")
-    var possible_cells = (0, _Game.getPossibleCells)(G.cells, parseInt(this.row), parseInt(this.column), this.piece, this.player);
-    var rand = parseInt(Math.random() * (possible_cells.length - 0) + 0);
-    var new_position = possible_cells[rand];
-    var row = new_position.substr(0, 1);
-    var column = new_position.substr(1, 1); //this.result = true;
-
-    this.reason = this.row + this.column + row + column + this.piece;
-    this.move = row + column; //console.log(this);
-
-    R.next();
-  }
-}; /////submit of rules////
-//rules.push(playBoardPiece)
-//rules.push(playBoardPiece2)
-//rules.push(playHandPiece)
-
-/* Register Rule */
-
-var R = new RuleEngine(rules, {
+var R = new RuleEngine(rules2, {
   ignoreFactChanges: true
 });
 /* Run engine for each fact */
@@ -25643,6 +25660,7 @@ var R = new RuleEngine(rules, {
 async function executeEngine(gameState, fn) {
   state = gameState;
   G = state.G;
+  module.exports = state.G;
 
   var result_facts = function func() {
     return new Promise((resolve, reject) => {
@@ -25660,7 +25678,7 @@ async function executeEngine(gameState, fn) {
     //console.log("Voy por: " + fact.piece)
     let m = await new Promise(resolve => R.execute(fact, function (data) {
       if (data.move != null) {
-        //console.log("Movimiento: " + data.move)
+        console.log("Movimiento: " + data.move);
         let move_info = [];
         move_info.push(data.row);
         move_info.push(data.column);
@@ -25723,16 +25741,110 @@ function submitFacts(fn) {
 
 function createFact(piece_type, row_id, column_id, player_id, hand) {
   var factName = player_id.concat(piece_type).concat(row_id.toString()).concat(column_id.toString()).concat(hand.toString());
+  var value = getValueOfPiece(piece_type, hand);
   var factName = {
     "piece": piece_type.toString(),
     "player": player_id.toString(),
     "row": row_id.toString(),
     "column": column_id.toString(),
-    "isHand": hand.toString()
+    "isHand": hand.toString(),
+    "value": value.toString()
   };
   return factName;
 }
-},{"./Game.js":"src/Game.js","node-rules":"node_modules/node-rules/index.js"}],"src/App.js":[function(require,module,exports) {
+
+function getValueOfPiece(piece, isHand) {
+  var value;
+
+  if (isHand) {
+    if (piece == "P") {
+      value = 1.15;
+    }
+
+    if (piece == "L") {
+      value = 4.8;
+    }
+
+    if (piece == "K") {
+      value = 5.1;
+    }
+
+    if (piece == "S") {
+      value = 7.2;
+    }
+
+    if (piece == "G") {
+      value = 7.8;
+    }
+
+    if (piece == "B") {
+      value = 11.1;
+    }
+
+    if (piece == "R") {
+      value = 12.70;
+    }
+  } else {
+    if (piece == "P") {
+      value = 1;
+    }
+
+    if (piece == "L") {
+      value = 4.3;
+    }
+
+    if (piece == "K") {
+      value = 4.5;
+    }
+
+    if (piece == "S") {
+      value = 6.4;
+    }
+
+    if (piece == "G") {
+      value = 6.9;
+    }
+
+    if (piece == "B") {
+      value = 8.9;
+    }
+
+    if (piece == "R") {
+      value = 10.40;
+    }
+
+    if (piece == "KING") {
+      value = 1000000000;
+    }
+
+    if (piece == "AP") {
+      value = 4.2;
+    }
+
+    if (piece == "AL") {
+      value = 6.3;
+    }
+
+    if (piece == "AK") {
+      value = 6.4;
+    }
+
+    if (piece == "AS") {
+      value = 6.7;
+    }
+
+    if (piece == "AB") {
+      value = 11.5;
+    }
+
+    if (piece == "AR") {
+      value = 13;
+    }
+  }
+
+  return value;
+}
+},{"./Game.js":"src/Game.js","./Openings.js":"src/Openings.js","node-rules":"node_modules/node-rules/index.js"}],"src/App.js":[function(require,module,exports) {
 "use strict";
 
 var _client = require("boardgame.io/client");
@@ -27283,7 +27395,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "56853" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "61549" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
