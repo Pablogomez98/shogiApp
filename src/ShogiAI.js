@@ -1,186 +1,280 @@
-import {getPossibleCells,getPossibleRevive} from './Game.js'
-import GenshiBougin from './Openings.js'
+import {executeEngine,setRules} from './GameRBS.js' 
+import {executeStrategyEngine} from './StrategyRBS.js' 
+import { movePiece, revivePiece } from './Game.js'; 
 
-/* Creating Rule Engine instance */
-var NodeRules = require('node-rules');
-var RuleEngine = require('node-rules');
+var currentPlayer 
+var depth = 4
+export async function requestMoveAI(event){
+  var client = event.currentTarget.parameter
+  var state = client.getState()
+  currentPlayer = state.ctx.currentPlayer
+  /////Get rules -> Strategy//////
+  var getRuleSet =  function func(){
+    return new Promise((resolve ,reject)=>{
+      getStrategy(state,function(result){
+        resolve(result)
+      });
+      
+    });
+  };  
+  let ruleSet = await getRuleSet();
+  console.log("Rules: ")
+  console.log(ruleSet)
+  //////////Get rules//////
 
-///Variables
-var G
-var state
+  var rules = getAllRules(ruleSet)
+  ////Best move//////
+  ////////////console.log("Primer nodo => ") 
+  var first_node_promise =  function func(){
+    return new Promise((resolve ,reject)=>{
+      getMovesKBS(state,rules,function(result){
+        resolve(result)
+      });
+      
+    });
+  };  
+  let moves = await first_node_promise();
+  moves.splice(2)
+  //console.log("Moves: ") 
+  //console.log(moves) 
 
-//////////FACTS///////////////////
+  var count = 0
+  var minmax_promise =  function func(){
+    return new Promise((resolve ,reject)=>{
+      getBestMove(moves,state,0,0,function(result){
+        resolve(result)
+      });
+      
+    });
+  };  
+  var bestmove = await minmax_promise();
+  //console.log(bestmove)
+  let row_id = parseInt(bestmove[0])
+  let column_id = parseInt(bestmove[1])
+  let row_target = parseInt(bestmove[2].substr(0,1))
+  let column_target = parseInt(bestmove[2].substr(1,1))
+  let piece = bestmove[3]
+  let isHand = bestmove[4]
+  if(isHand!=1){
+    client.moves.movePiece(row_id,column_id,row_target,column_target,piece);  
+  }
+  else{
+    client.moves.revivePiece(row_target,column_target,state.ctx.currentPlayer.concat(piece));  
+  } 
+       
 
-
-//////////RULES/////////////////
-var rules2 = [
-    {///////playBoardPiece
-        "condition": function(R) {	
-        //console.log("playBoard")
-        //console.log(this);
-        var possible_cells = getPossibleCells(G.cells,parseInt(this.row),parseInt(this.column),this.piece,this.player)
-        //console.log(possible_cells)
-        R.when(possible_cells!="" && this.player==state.ctx.currentPlayer && this.isHand=="0");
-    },
-    "consequence": function(R) {
-        //console.log("move")
-        var possible_cells = getPossibleCells(G.cells,parseInt(this.row),parseInt(this.column),this.piece,this.player)
-        var rand = parseInt(Math.random() * (possible_cells.length - 0) + 0);
-        var new_position = possible_cells[rand]
-        var row = new_position.substr(0,1)
-        var column = new_position.substr(1,1)
-        //this.result = true;
-        this.reason = this.row+this.column+row+column+this.piece
-        this.move = row+column
-        //console.log(this);
-        R.next();
-    }
-    },
-    {/////////playHandPiece
-        "condition": function(R) {	
-            //console.log(this);
-            var possible_cells = getPossibleRevive(G.cells,this.piece,this.player)
-            //console.log(possible_cells)
-            R.when(possible_cells!="" && this.player==state.ctx.currentPlayer && this.isHand=="1");
-        },
-        "consequence": function(R) {
-            //console.log("move")
-            var possible_cells = getPossibleRevive(G.cells,this.piece,this.player)
-            var rand = parseInt(Math.random() * (possible_cells.length - 0) + 0);
-            var new_position = possible_cells[rand]
-            var row = new_position.substr(0,1)
-            var column = new_position.substr(1,1)
-            //this.result = true;
-            this.reason = this.row+this.column+row+column+this.piece
-            this.move = row+column
-            //console.log(this);
-            R.next();
-        }
-    }
-
-];
-////////////////////////////////////////////////////////////////////////////////////////
-/////submit of rules////
-//var rules = GenshiBougin
-//console.log("GenshiBoushin: ")
-var R = new RuleEngine(rules2,{ignoreFactChanges:true});
-/* Run engine for each fact */
-export async function executeEngine(gameState,fn){
-    state = gameState
-    G = state.G
-    module.exports = state.G
-    var result_facts =  function func(){
-        return new Promise((resolve ,reject)=>{
-            submitFacts(function(result){
-            resolve(result)
-          }); 
-        });
-    };  
-    let facts = await result_facts();
-    let moves = []
-    let final_moves = []
-    //console.log("facts: " + facts)  
-        for (let fact of facts) {
-            //console.log("Voy por: " + fact.piece)
-            let m = await new Promise(resolve => 
-                R.execute(fact, function (data) {
-                    if (data.move!=null) {
-                        console.log("Movimiento: " + data.move)
-                        let move_info = []                  
-                        move_info.push(data.row)
-                        move_info.push(data.column)
-                        move_info.push(data.move)
-                        move_info.push(data.piece)
-                        move_info.push(data.isHand)
-                        move_info.push(data.player)
-                        moves.push(move_info)
-                        resolve(move_info)   
-                    } 
-                    else{resolve("")}
-                })
-            );
-            
-            if(m!=""){final_moves.push(m)}  
-        }
-    //console.log("Final moves: " + final_moves)
-    fn(final_moves)      
-}
-/////submit of facts////
-function submitFacts(fn){
-    var facts = []
-    var player_and_piece
-    for(let i=0;i<G.cells.length;i++){
-        let row = G.cells[i]
-        for(let j=0;j<G.cells[i].length;j++){
-          if(row[j]!=null){
-            player_and_piece = row[j]
-            var piece = player_and_piece.substr(1,4)
-            var player = player_and_piece.substr(0,1)
-            var fact = createFact(piece,i,j,player,0);
-            facts.push(fact)
-          }
-        }
-    }
-    for(let i=0;i<G.sente_captured_pieces.length;i++){      
-        player_and_piece = G.sente_captured_pieces[i]
-        var piece = player_and_piece.substr(0,4)
-        var fact = createFact(piece,0,0,"0",1);
-        facts.push(fact)
-          
-    }
-    for(let i=0;i<G.gote_captured_pieces.length;i++){      
-        player_and_piece = G.gote_captured_pieces[i]
-        var piece = player_and_piece.substr(0,4)
-        var fact = createFact(piece,0,0,"1",1);
-        facts.push(fact)
-          
-    }
-    
-    //facts.push(fact2)
-    fn(facts)
-}
-function createFact(piece_type,row_id,column_id,player_id,hand){
-    var factName = player_id.concat(piece_type).concat(row_id.toString()).concat(column_id.toString()).concat(hand.toString())
-    var value = getValueOfPiece(piece_type,hand)
-    var factName = {
-        "piece": piece_type.toString(),
-        "player": player_id.toString(),
-        "row": row_id.toString(),
-        "column" : column_id.toString(),
-        "isHand" : hand.toString(),
-        "value" : value.toString()
-    }
-    return factName
 }
 
-function getValueOfPiece(piece,isHand){
-    var value
-    if(isHand){
-        if(piece=="P"){value=1.15}
-        if(piece=="L"){value=4.8}
-        if(piece=="K"){value=5.1}
-        if(piece=="S"){value=7.2}
-        if(piece=="G"){value=7.8}
-        if(piece=="B"){value=11.1}
-        if(piece=="R"){value=12.70} 
+async function getMovesKBS(state,rules,fn){
+  //console.log("SBC cells: ");
+  //console.log(state.G.cells);
+  let resultKBS = ()=>{
+    return new Promise((resolve,reject)=>{
+      executeEngine(state,rules,function(result){
+        resolve(result)
+      });
+    });
+  };
+  let moves = await resultKBS();
+  console.log("Resultado del SBC: ");
+  console.log(moves);
+  //console.log(state.G.cells)
+  fn(moves)
+
+
+}
+
+async function getBestMove(moves,state,node_depth,count,fn) {
+  
+  //console.log("////////MinMax////////")
+  //////////////////////console.log("Nodo: " + node_depth+" "+count) 
+  //const {parse, stringify} = require('flatted/cjs');
+  //console.log()
+  //console.log( state.G.cells)
+  var possibleScores = [];
+  var possibleMoves = [];
+
+  //////////////////////CHANGE PLAYER////////////////////////
+  /////////////////////////console.log("Jugador: " + state.ctx.currentPlayer + currentPlayer)
+  let player = state.ctx.currentPlayer
+  if(player=="0"){ player = "1"}
+    else{ player = "0"}
+  //console.log("Player now: " + player)
+  ////////////////CREATE STATES//////////////////////////////
+  var possibleStates = moves.map(function(el) {
+    //console.log("Hijo " + count + " : ") 
+    //count = count + 1
+    //console.log(state.G.cells)
+    const new_state = JSON.parse(JSON.stringify(state));
+    //console.log(new_state.G.cells)
+    //console.log(el)
+    //console.log(new_state.ctx.currentPlayer)
+    //console.log(new_state.G.cells)
+    possibleMoves.push(el);
+
+    let row_id = parseInt(el[0])
+    let column_id = parseInt(el[1])
+    let row_target = parseInt(el[2].substr(0,1))
+    let column_target = parseInt(el[2].substr(1,1))
+    let piece = el[3]
+    let isHand = el[4]
+    if(isHand!=1){
+      new_state.G = movePiece(new_state.G,new_state.ctx, row_id,column_id,row_target,column_target,piece);  
     }
     else{
-        if(piece=="P"){value=1}
-        if(piece=="L"){value=4.3}
-        if(piece=="K"){value=4.5}
-        if(piece=="S"){value=6.4}
-        if(piece=="G"){value=6.9}
-        if(piece=="B"){value=8.9}
-        if(piece=="R"){value=10.40}
-        if(piece=="KING"){value=1000000000}
-
-        if(piece=="AP"){value=4.2}
-        if(piece=="AL"){value=6.3}
-        if(piece=="AK"){value=6.4}
-        if(piece=="AS"){value=6.7}
-        if(piece=="AB"){value=11.5}
-        if(piece=="AR"){value=13} 
+      new_state.G = revivePiece(new_state.G, new_state.ctx, row_target,column_target,state.ctx.currentPlayer.concat(piece));  
     }
+    possibleScores.push(getHeuristic(new_state))
+    new_state.ctx.currentPlayer = player
+    return new_state;
+  });
+  ///////////////////////////////////////console.log("Todos los hijos de : "+ node_depth + " "+count)
+  ///////////////////////////////////////////console.log(possibleStates);
+  //console.log("Possible Scores: ")
+  //console.log(possibleScores);
 
-    return value
+
+  //////////////CHECK STOP OR BOTTOM LEVEL////////////////////
+  node_depth = node_depth +1
+  //console.log("Depth: " + (depth-1))
+  if (node_depth===depth){
+    
+    if(currentPlayer==player){//////////////////////////////console.log("Bottom node. Min heurístic: " + getMin(possibleScores)) ;
+    return fn(getMin(possibleScores))}
+    else{///////////////////////////////////console.log("Bottom node. Max heurístic: " + getMax(possibleScores)); 
+    return fn(getMax(possibleScores))}
+  }
+
+   if (possibleMoves.length < 1) {
+    console.log("NO MOVES")
+    return -1;
+  }
+
+  //////////////////CREATE SONS  -  RECURSIVE///////////////////
+  var heuristics = []
+  
+  
+  let makeNodes = ()=>{
+    return new Promise((resolve,reject)=>{
+      possibleStates.forEach(async function (state, i) {
+        /////////////////////////////////////console.log("A explorar hijo: " + i +" de " + (node_depth-1) + " "+ count)
+        //console.log(node.G.cells)
+       //node es cada estado <-
+       /* let getMoveK = (node)=>{
+          return new Promise((resolve,reject)=>{
+            //console.log("lets get moves from player: " + node.ctx.currentPlayer)
+            getMovesKBS(node,(res)=>{resolve(res);})
+          })
+        }
+        let moves = await getMoveK(node)*/
+        ////////////////get moves//////////////
+        var first_node_promise =  function func(){
+          return new Promise((resolve ,reject)=>{
+            getMovesKBS(state,function(result){
+              resolve(result)
+              });
+                
+            });
+          }; 
+          let new_moves = await first_node_promise()
+          new_moves.splice(2)
+        //////////////Recursive Minmax////////////////
+        let callMinmaxLoop = function func(){
+          return new Promise((resolve,reject)=>{
+            //console.log("lets loop " + depth)
+            getBestMove(new_moves,state,node_depth,count,function(result){
+              resolve(result)
+            });
+                
+          });
+        }; 
+        var heur = await callMinmaxLoop()
+        count = count + 1
+        //console.log("Heur: " + bstmov)
+        heuristics.push(heur)   
+        resolve(heuristics)  
+    });
+    })
+  }
+  let heuristicas = await makeNodes()
+  ///////////////////////////////////console.log("Heurísticas de : "+ (node_depth-1) + " "+ count)
+  ///////////////////////////////////////console.log(heuristicas)
+///////////////MINMAX BACKPROPAGATION -> FINAL///////////////////////
+  if(node_depth== 1){
+      var bestmov = possibleMoves[indexOfMax(heuristicas)];
+      ////////////////////////////////console.log("FINAL MOVE: ")
+      ////////////////////////////////console.log(bestmov)
+      fn(bestmov)
+  }
+  else{///////////////////////////console.log("Navigatin through node " +currentPlayer+player )
+    //fn(getMax(heuristics))}*/
+    if(currentPlayer==player){///////////////////////////////////////console.log("Nav node de: "+ (node_depth-1) + " "+ count+". Min heurístic: " + getMin(heuristics)) ;
+    return fn(getMin(heuristics))}
+    else{///////////////////////////////////////console.log("Nav node de: "+ (node_depth-1) + " "+ count+". Max heurístic: " + getMax(heuristics)); 
+    return fn(getMax(heuristics))}
+  }
+  
+}
+
+async function getStrategy(state,fn){
+  let resultStrategy = ()=>{
+    return new Promise((resolve,reject)=>{
+      executeStrategyEngine(state,function(result){
+        resolve(result)
+      });
+    });
+  };
+  let ruleSet = await resultStrategy();
+  //console.log("Resultado del SBC: ");
+  //console.log(moves);
+  //console.log(state.G.cells)
+  fn(ruleSet)
+}
+
+
+
+///////////////////////
+function getHeuristic(new_state){
+ /* var gote_eaten = new_state.G.gote_captured_pieces
+  var sente_eaten = new_state.G.sente_captured_pieces
+  if(gote_eaten.length < sente_eaten.length){return -10000000}
+  if(gote_eaten.length > sente_eaten.length){return 10000000}*/
+  return Math.floor(Math.random() * (50 + 50)) ;
+}
+function getAllRules(ruleSet){
+  var importedRules = new Array()
+  var rules = []
+  var statrul = require('./rules/OpeningRookRules/StaticRookRules.js')
+  for(let i=0;i<ruleSet.length;i++){
+    if(ruleSet[i]=="StaticRookRules"){importedRules.push(require('./rules/OpeningRookRules/StaticRookRules.js').StaticRookRules)}
+    if(ruleSet[i]=="RangingRookRules"){importedRules.push(require('./rules/OpeningRookRules/RangingRookRules.js').RangingRookRules)}
+  }
+  importedRules.push(require('./rules/BasicRules.js').BasicRules)
+  for(let i=0;i<importedRules.length;i++){
+    for(let j=0;j<importedRules[i].length;j++){
+      rules.push(importedRules[i][j])
+    }
+  }
+  return rules
+}
+
+function indexOfMax(arr) {
+  var max = arr.reduce(function(a,b) {
+    return b > a ? b : a;   
+  });
+  return arr.indexOf(max);
+}
+function getMax(arr) {
+  var max = arr.reduce(function(a,b) {
+    return b > a ? b : a;   
+  });
+  
+  return max;
+}
+function getMin(arr) {
+  var max = arr.reduce(function(a,b) {
+    return b < a ? b : a;   
+  });
+  
+  return max;
 }

@@ -158,7 +158,7 @@ export const Shogi = {
 
     endIf: (G,ctx)=> {
       if(isCheckMate(G,ctx)){
-        //alert("¡FIN! GANADOR: " + ctx.currentPlayer)
+        alert("¡FIN! GANADOR: " + ctx.currentPlayer)
         return { winner: ctx.currentPlayer };
       }
     }
@@ -204,10 +204,9 @@ export const Shogi = {
   //////////------------FUNCTIONS------------//////////
   function fillBoard(){
     let board = new Array(9).fill(null);
-    var tablero = new Array(9).fill(null);
     for(let i=0;i<9;i++){
       board[i] = new Array(9).fill(null);
-      tablero[i] = new Array(9).fill(null);
+
       for(let j=0;j<9;j++){
         if(i==2){board[i][j] = pieces.SENTE_PAWN; } 
         if(i==6){board[i][j]= pieces.GOTE_PAWN;}
@@ -1122,6 +1121,120 @@ export const Shogi = {
     ////////////////////////////////////////////////////////////////    
     isCheck(G_clone,player)
     return true
+  }
+
+  export function movePiece (G, ctx, initial_row,initial_column, target_row,target_column,player_piece){
+    /////////////////////////// MOVIMIENTO //////////////////////////
+    //console.log("Player: " + ctx.currentPlayer + " wants to move " + player_piece + " de " + initial_row+ " a " + target_row)
+    //console.log("Y de " + initial_column + " a " + target_column)
+    let possible_cells = getPossibleCells(G.cells,initial_row,initial_column,player_piece,ctx.currentPlayer)
+    //console.log(possible_cells)
+
+    var valid_move = false;
+    var row = G.cells[initial_row];
+    var new_row = G.cells[target_row];
+    var capture = false;
+    var target_piece 
+
+    for(let valid of possible_cells){
+      let valid_row = valid.substr(0,1)
+      let valid_column = valid.substr(1,2)
+      if(valid_row==target_row && valid_column==target_column){
+        valid_move = true;
+        //quitar pieza
+        row[initial_column]=null;
+        G.cells[initial_row] = row;
+        //poner pieza
+        if(new_row[target_column]!=null){
+          capture = true; 
+          if(new_row[target_column].substr(1,1)=="A"){target_piece=new_row[target_column].substr(2,2)}
+          else{target_piece=new_row[target_column].substr(1,2)}
+        }
+        new_row[target_column] = ctx.currentPlayer.concat(player_piece)
+        if(capture){
+            if(ctx.currentPlayer=="0"){G.sente_captured_pieces.push(target_piece)}
+            else{G.gote_captured_pieces.push(target_piece)}
+        }
+        break;
+      }
+    }
+    if(valid_move == false){alert("INVALIDO..."); 
+    console.log("Player: " + ctx.currentPlayer + " wants to move " + player_piece + " de " + initial_row+ " a " + target_row)
+    console.log("Y de " + initial_column + " a " + target_column)
+    return INVALID_MOVE}
+    /////////////////////////// MOVIMIENTO REY //////////////////////////
+    if(player_piece=="KING"){
+      if(ctx.currentPlayer=="0"){
+        G.sente_king_position = target_row.toString().concat(target_column)
+      }
+      if(ctx.currentPlayer=="1"){
+        G.gote_king_position = target_row.toString().concat(target_column)
+      }
+    }
+    ////////////////////////////////////////////////////////////////////
+
+    /////////////////////////CHECK SITUATION/////////////////////////
+    let still_check = true        
+      if(ctx.currentPlayer=="0"){still_check = isCheck(G,"1")} 
+      if(ctx.currentPlayer=="1"){still_check = isCheck(G,"0")}
+      if(still_check){//alert("INVALIDO POR CHECK");
+      return INVALID_MOVE}      
+    ////////////////////////////////////////////////////////////////    
+
+    /////////////////////////// PROMOCIÓN //////////////////////////////
+    let arised_piece = player_piece.substr(0,1);
+    if(   ((target_row>=6 && ctx.currentPlayer==0) || (target_row<=2 && ctx.currentPlayer==1) 
+          || (initial_row>=6 && ctx.currentPlayer==0) || (initial_row<=2 && ctx.currentPlayer==1))
+          && (player_piece!="KING" && player_piece!="G" && arised_piece!="A")
+      ){ 
+        arisePiece(G,ctx.currentPlayer.concat(player_piece),target_row,target_column);
+        /*if (confirm("Arise piece?")) {
+        arisePiece(G,ctx.currentPlayer.concat(player_piece),target_row,target_column);
+        }*/
+    }
+    ///////////////////////////////////////////////////////////////////
+    return G
+    
+  }
+  export function  revivePiece (G, ctx, target_row,target_column,player_piece,highlight=null)  {
+    /////////////////////////// MOVIMIENTO //////////////////////////
+    let possible_cells = getPossibleRevive(G.cells,player_piece.substr(1,4),player_piece.substr(0,1))
+    console.log("pos: " + possible_cells)
+    var valid_move = false;
+    var new_row = G.cells[target_row];
+
+    for(let valid of possible_cells){
+      let valid_row = valid.substr(0,1)
+      let valid_column = valid.substr(1,2)
+      if(valid_row==target_row && valid_column==target_column){
+        valid_move = true;
+        //poner pieza
+        new_row[target_column] = player_piece
+        break;
+      }
+    }
+    if(valid_move == false){return INVALID_MOVE}
+    ////////////////////////TAKE OUT FROM CAPTURED PIECES///////////
+      if(ctx.currentPlayer=="0"){
+        const index = G.sente_captured_pieces.indexOf(player_piece.substr(1,4));
+        if(index<0){return INVALID_MOVE}
+        G.sente_captured_pieces.splice(index, 1); 
+      }
+      if(ctx.currentPlayer=="1"){
+        const index = G.gote_captured_pieces.indexOf(player_piece.substr(1,4));
+        if(index<0){return INVALID_MOVE}
+        G.gote_captured_pieces.splice(index, 1);
+      }
+    ////////////////////////////////////////////////////////////////
+
+    /////////////////////////CHECK SITUATION/////////////////////////
+    let still_check = true        
+      if(ctx.currentPlayer=="0"){still_check = isCheck(G,"1")} 
+      if(ctx.currentPlayer=="1"){still_check = isCheck(G,"0")}
+      if(still_check){return INVALID_MOVE}      
+    ////////////////////////////////////////////////////////////////    
+    isCheck(G,ctx.currentPlayer)
+    if(highlight!=null){highlight.className = "cell";}
   }
   //////////------END FUNCTIONS---------------/////////
   function isCheck(G,player){
