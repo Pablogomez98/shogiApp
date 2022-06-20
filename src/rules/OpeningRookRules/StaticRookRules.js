@@ -1,30 +1,70 @@
 var StaticRookRules = [
-    {///////moveRandom
-        "priority": 1,
-        "condition": function(R) {	
-            //console.log("Rule: moveRandom")
-            //console.log("player: " + this.player + this.state.ctx.currentPlayer)
-            R.when(
-                this.possibleMoves!="" 
-                && this.player==this.state.ctx.currentPlayer 
-                && this.isHand=="0"
-                );
+        {///////Advance Pawn
+            "priority":8,
+            "condition": function(R) {	
+                var notPositioned = false 
+                if(this.piece=="P" && ((this.column==1 && this.row==2 && this.player=="0")||(this.column==7 && this.row==6 && this.player=="1"))){notPositioned=true}
+                R.when(
+                    notPositioned &&
+                    this.possibleMoves!="" && this.player==this.state.ctx.currentPlayer && this.isHand=="0"
+                    );
+            },
+            "consequence": function(R) {
+                //console.log("Rule activated: Yagura pawn")
+                var new_position
+                if(this.player=="0"){new_position="31"}
+                else{new_position="57"}
+                var row = new_position.substr(0,1)
+                var column = new_position.substr(1,1)
+                this.priorities.push(8)
+                this.moves.push(row+column)  
+                R.next();
+            }
         },
-        "consequence": function(R) {
-            //console.log("Rule activated: playBoard")
-            //var state = require('./ShogiRBS.js')
-            //var G = state.G
-            var rand = parseInt(Math.random() * (this.possibleMoves.length - 0) + 0);
-            var new_position = this.possibleMoves[rand]
-            var row = new_position.substr(0,1)
-            var column = new_position.substr(1,1)
-            //this.result = true;
-            this.reason = this.row+this.column+row+column+this.piece
-            this.move = row+column
-            //console.log(this);
-            R.stop();
-        }
-    }
+        {///////Advance Pawn
+            "priority":8,
+            "condition": function(R) {	
+                var notPositioned = false 
+                if(this.piece=="P" && ((this.column==1 && this.row==3 && this.player=="0")||(this.column==7 && this.row==5 && this.player=="1"))){notPositioned=true}
+                R.when(
+                    notPositioned &&
+                    this.possibleMoves!="" && this.player==this.state.ctx.currentPlayer && this.isHand=="0"
+                    );
+            },
+            "consequence": function(R) {
+                //console.log("Rule activated: Yagura pawn")
+                var new_position
+                if(this.player=="0"){new_position="41"}
+                else{new_position="47"}
+                var row = new_position.substr(0,1)
+                var column = new_position.substr(1,1)
+                this.priorities.push(8)
+                this.moves.push(row+column)  
+                R.next();
+            }
+        },
+        {///////Advance Pawn
+            "priority":5,
+            "condition": function(R) {	
+                var notPositioned = false 
+                if(this.piece=="P" && ((this.column==1 && this.row==4 && this.player=="0")||(this.column==7 && this.row==4 && this.player=="1"))){notPositioned=true}
+                R.when(
+                    notPositioned &&
+                    this.possibleMoves!="" && this.player==this.state.ctx.currentPlayer && this.isHand=="0"
+                    );
+            },
+            "consequence": function(R) {
+                //console.log("Rule activated: Yagura pawn")
+                var new_position
+                if(this.player=="0"){new_position="51"}
+                else{new_position="37"}
+                var row = new_position.substr(0,1)
+                var column = new_position.substr(1,1)
+                this.priorities.push(7)
+                this.moves.push(row+column)  
+                R.next();
+            }
+        },
      
 ]
 

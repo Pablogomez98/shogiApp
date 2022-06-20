@@ -4,20 +4,16 @@ var RuleEngine = require('node-rules');
 ///Variables
 var G
 var state
+var rooks = [null,null]
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /////submit of rules////
 var strategy_rules = require('./rules/StrategyRules.js')
 var R = new RuleEngine(strategy_rules.StrategyRules,{ignoreFactChanges:true});
+
 /* Run engine for each fact */
 export async function executeStrategyEngine(gameState,fn){
     state = gameState
-    //module.exports = state
-    //console.log("Engine: ")  
-    //console.log(state.G.cells)  
-    
-    //console.log("GenshiBoushin: ")
-    //console.log(rules.GenshiBougin)
     
     var result_facts =  function func(){
         return new Promise((resolve ,reject)=>{
@@ -26,17 +22,16 @@ export async function executeStrategyEngine(gameState,fn){
           }); 
         });
     };  
-    let facts = await result_facts();
-    console.log("facts: " )  
+    let facts = await result_facts(); 
+    console.log("Strategy facts: " )  
     console.log(facts)  
     let rules = []
-    //console.log("facts: " + facts)  
         for (let fact of facts) {
-            //console.log("Voy por: " + fact.piece)
             let m = await new Promise(resolve => 
                 R.execute(fact, function (data) {
                     if (data.strategy!=null) {
-                        console.log("Fact: " + data.rook)
+                        if(data.rook!=null){
+                        rooks[parseInt(data.player)]=data.rook}
                         let move_info = data.strategy               
                         resolve(move_info)   
                     } 
@@ -46,7 +41,7 @@ export async function executeStrategyEngine(gameState,fn){
             
             if(m!=""){rules.push(m)}  
         }
-    //console.log("Final moves: " + final_moves)
+    //console.log("Final rules: " + rules)
     fn(rules)      
 }
 /////submit of facts////
@@ -65,10 +60,13 @@ function submitFacts(state,fn){
 
 function createFact(state,player_id){
     var factName = player_id
+    if(player_id=="0"){var rival_id="1"}
+    else{var rival_id="0"}
     var ruleSet = []
     var factName = {
         "player": player_id.toString(),
-        "rook": null,
+        "rook": rooks[player_id],
+        "oposing_rook": rooks[rival_id],
         "castle" : null,
         "state" : state,
         "strategy" : ruleSet,

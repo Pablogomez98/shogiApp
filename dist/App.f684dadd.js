@@ -20235,6 +20235,8 @@ exports.getPossibleCells = getPossibleCells;
 exports.getPossibleRevive = getPossibleRevive;
 exports.movePiece = movePiece;
 exports.revivePiece = revivePiece;
+exports.isCheck = isCheck;
+exports.isCheckMate = isCheckMate;
 exports.Shogi = void 0;
 
 var _core = require("boardgame.io/core");
@@ -20257,10 +20259,7 @@ const Shogi = {
   moves: {
     movePiece: (G, ctx, initial_row, initial_column, target_row, target_column, player_piece, highlight = null) => {
       /////////////////////////// MOVIMIENTO //////////////////////////
-      //console.log("Player: " + ctx.currentPlayer + " wants to move " + player_piece + " de " + initial_row+ " a " + target_row)
-      //console.log("Y de " + initial_column + " a " + target_column)
-      let possible_cells = getPossibleCells(G.cells, initial_row, initial_column, player_piece, ctx.currentPlayer); //console.log(possible_cells)
-
+      let possible_cells = getPossibleCells(G.cells, initial_row, initial_column, player_piece, ctx.currentPlayer);
       var valid_move = false;
       var row = G.cells[initial_row];
       var new_row = G.cells[target_row];
@@ -20331,7 +20330,7 @@ const Shogi = {
       if (still_check) {
         return _core.INVALID_MOVE;
       } ////////////////////////////////////////////////////////////////    
-      /////////////////////////// PROMOCIÓN //////////////////////////////
+      /////////////////////////// PROMOCIÓN ////////////////////////////// REVISAR!!!!!!!!!!!!!!
 
 
       let arised_piece = player_piece.substr(0, 1);
@@ -20352,7 +20351,6 @@ const Shogi = {
     revivePiece: (G, ctx, target_row, target_column, player_piece, highlight = null) => {
       /////////////////////////// MOVIMIENTO //////////////////////////
       let possible_cells = getPossibleRevive(G.cells, player_piece.substr(1, 4), player_piece.substr(0, 1));
-      console.log("pos: " + possible_cells);
       var valid_move = false;
       var new_row = G.cells[target_row];
 
@@ -20429,7 +20427,6 @@ const Shogi = {
 
             if (possible_moves != null && possible_moves.length > 0) {
               for (let move of possible_moves) {
-                //console.log("Mando..." + row_id + " " + column_id + " a " + move + " y mando " + piece.substr(1,4))
                 moves.push({
                   move: 'movePiece',
                   args: [row_id, column_id, move.substr(0, 1), move.substr(1, 2), piece.substr(1, 4)]
@@ -20606,7 +20603,6 @@ function arisePiece(G, player_and_piece, target_row, target_column) {
 }
 
 function getPossibleCells(cells, row_id, column_id, piece, player) {
-  //console.log("get" + cells + row_id + column_id + piece + player)
   if (player == "0") {
     return getPossibleCellsSente(cells, row_id, column_id, piece);
   }
@@ -20699,29 +20695,29 @@ function getPossibleCellsSente(cells, row_id, column_id, piece) {
 
     if (row_id > 0 && column_id > 0 && (row[column_id - 1] == null || row[column_id - 1].substr(0, 1) == "1")) {
       let possible_cell = (row_id - 1).toString().concat(column_id - 1);
-      possible_cells.push(possible_cell); //console.log("Silver move: " + possible_cell);
+      possible_cells.push(possible_cell);
     }
 
     if (row_id > 0 && column_id < 8 && (row[column_id + 1] == null || row[column_id + 1].substr(0, 1) == "1")) {
       let possible_cell = (row_id - 1).toString().concat(column_id + 1);
-      possible_cells.push(possible_cell); //console.log("Silver move: " + possible_cell);
+      possible_cells.push(possible_cell);
     }
 
     row = cells[row_id + 1];
 
     if (row_id < 8 && column_id > 0 && (row[column_id - 1] == null || row[column_id - 1].substr(0, 1) == "1")) {
       let possible_cell = (row_id + 1).toString().concat(column_id - 1);
-      possible_cells.push(possible_cell); //console.log("Silver move: " + possible_cell);
+      possible_cells.push(possible_cell);
     }
 
     if (row_id < 8 && column_id < 8 && (row[column_id + 1] == null || row[column_id + 1].substr(0, 1) == "1")) {
       let possible_cell = (row_id + 1).toString().concat(column_id + 1);
-      possible_cells.push(possible_cell); //console.log("Silver move: " + possible_cell);
+      possible_cells.push(possible_cell);
     }
 
     if (row_id < 8 && (row[column_id] == null || row[column_id].substr(0, 1) == "1")) {
       let possible_cell = (row_id + 1).toString().concat(column_id);
-      possible_cells.push(possible_cell); //console.log("Silver move: " + possible_cell);
+      possible_cells.push(possible_cell);
     }
   } else if (piece == "KING") {
     row = cells[row_id - 1];
@@ -20781,12 +20777,12 @@ function getPossibleCellsSente(cells, row_id, column_id, piece) {
     for (let i = 1; i < 9; i++) {
       if (!right_stop && column_id - i >= 0 && (actual_row[column_id - i] == null || actual_row[column_id - i].substr(0, 1) == "1")) {
         let possible_cell = row_id.toString().concat(column_id - i);
-        possible_cells.push(possible_cell); //console.log("Rook move 1: " + possible_cell);
+        possible_cells.push(possible_cell);
       }
 
       if (!left_stop && column_id + i <= 8 && (actual_row[column_id + i] == null || actual_row[column_id + i].substr(0, 1) == "1")) {
         let possible_cell = row_id.toString().concat(column_id + i);
-        possible_cells.push(possible_cell); //console.log("Rook move 2: " + possible_cell);
+        possible_cells.push(possible_cell);
       }
 
       if (!right_stop && column_id - i >= 0 && actual_row[column_id - i] != null && (actual_row[column_id - i].substr(0, 1) == "0" || actual_row[column_id - i].substr(0, 1) == "1")) {
@@ -20802,12 +20798,12 @@ function getPossibleCellsSente(cells, row_id, column_id, piece) {
 
       if (!back_stop && row_id - i >= 0 && (back_row[column_id] == null || back_row[column_id].substr(0, 1) == "1")) {
         let possible_cell = (row_id - i).toString().concat(column_id);
-        possible_cells.push(possible_cell); // console.log("Rook move 3: " + possible_cell);
+        possible_cells.push(possible_cell);
       }
 
       if (!front_stop && row_id + i <= 8 && (front_row[column_id] == null || front_row[column_id].substr(0, 1) == "1")) {
         let possible_cell = (row_id + i).toString().concat(column_id);
-        possible_cells.push(possible_cell); //console.log("Rook move 4: " + possible_cell);
+        possible_cells.push(possible_cell);
       }
 
       if (!back_stop && row_id - i >= 0 && back_row[column_id] != null && (back_row[column_id].substr(0, 1) == "0" || back_row[column_id].substr(0, 1) == "1")) {
@@ -20828,11 +20824,11 @@ function getPossibleCellsSente(cells, row_id, column_id, piece) {
 
     for (let i = 1; i < 10; i++) {
       back_row = cells[row_id - i];
-      front_row = cells[row_id + i]; //back_right
+      front_row = cells[row_id + i]; //back right
 
       if (!back_right_stop && back_row != null && column_id + i < 9 && (back_row[column_id + i] == null || back_row[column_id + i].substr(0, 1) == "1")) {
         let possible_cell = (row_id - i).toString().concat(column_id + i);
-        possible_cells.push(possible_cell); //console.log("Bishop move 1: " + possible_cell);
+        possible_cells.push(possible_cell);
       }
 
       if (!back_right_stop && back_row != null && column_id + i < 9 && back_row[column_id + i] != null && (back_row[column_id + i].substr(0, 1) == "0" || back_row[column_id + i].substr(0, 1) == "1")) {
@@ -20842,7 +20838,7 @@ function getPossibleCellsSente(cells, row_id, column_id, piece) {
 
       if (!back_left_stop && back_row != null && column_id - i >= 0 && (back_row[column_id - i] == null || back_row[column_id - i].substr(0, 1) == "1")) {
         let possible_cell = (row_id - i).toString().concat(column_id - i);
-        possible_cells.push(possible_cell); //console.log("Bishop move 2: " + possible_cell);
+        possible_cells.push(possible_cell);
       }
 
       if (!back_left_stop && back_row != null && column_id - i >= 0 && back_row[column_id - i] != null && (back_row[column_id - i].substr(0, 1) == "0" || back_row[column_id - i].substr(0, 1) == "1")) {
@@ -20852,7 +20848,7 @@ function getPossibleCellsSente(cells, row_id, column_id, piece) {
 
       if (!front_right_stop && front_row != null && column_id + i < 9 && (front_row[column_id + i] == null || front_row[column_id + i].substr(0, 1) == "1")) {
         let possible_cell = (row_id + i).toString().concat(column_id + i);
-        possible_cells.push(possible_cell); //console.log("Bishop move 3: " + possible_cell);
+        possible_cells.push(possible_cell);
       }
 
       if (!front_right_stop && front_row != null && column_id + i < 9 && front_row[column_id + i] != null && (front_row[column_id + i].substr(0, 1) == "0" || front_row[column_id + i].substr(0, 1) == "1")) {
@@ -20862,7 +20858,7 @@ function getPossibleCellsSente(cells, row_id, column_id, piece) {
 
       if (!front_left_stop && front_row != null && column_id - i >= 0 && (front_row[column_id - i] == null || front_row[column_id - i].substr(0, 1) == "1")) {
         let possible_cell = (row_id + i).toString().concat(column_id - i);
-        possible_cells.push(possible_cell); //console.log("Bishop move 4: " + possible_cell);
+        possible_cells.push(possible_cell);
       }
 
       if (!front_left_stop && front_row != null && column_id - i >= 0 && front_row[column_id - i] != null && (front_row[column_id - i].substr(0, 1) == "0" || front_row[column_id - i].substr(0, 1) == "1")) {
@@ -20883,7 +20879,7 @@ function getPossibleCellsSente(cells, row_id, column_id, piece) {
 
       if (!back_right_stop && back_row != null && column_id + i < 9 && (back_row[column_id + i] == null || back_row[column_id + i].substr(0, 1) == "1")) {
         let possible_cell = (row_id - i).toString().concat(column_id + i);
-        possible_cells.push(possible_cell); //console.log("Semental move 1: " + possible_cell);
+        possible_cells.push(possible_cell);
       }
 
       if (!back_right_stop && back_row != null && column_id + i < 9 && back_row[column_id + i] != null && (back_row[column_id + i].substr(0, 1) == "0" || back_row[column_id + i].substr(0, 1) == "1")) {
@@ -20893,7 +20889,7 @@ function getPossibleCellsSente(cells, row_id, column_id, piece) {
 
       if (!back_left_stop && back_row != null && column_id - i >= 0 && (back_row[column_id - i] == null || back_row[column_id - i].substr(0, 1) == "1")) {
         let possible_cell = (row_id - i).toString().concat(column_id - i);
-        possible_cells.push(possible_cell); //console.log("Semental move 2: " + possible_cell);
+        possible_cells.push(possible_cell);
       }
 
       if (!back_left_stop && back_row != null && column_id - i >= 0 && back_row[column_id - i] != null && (back_row[column_id - i].substr(0, 1) == "0" || back_row[column_id - i].substr(0, 1) == "1")) {
@@ -20903,7 +20899,7 @@ function getPossibleCellsSente(cells, row_id, column_id, piece) {
 
       if (!front_right_stop && front_row != null && column_id + i < 9 && (front_row[column_id + i] == null || front_row[column_id + i].substr(0, 1) == "1")) {
         let possible_cell = (row_id + i).toString().concat(column_id + i);
-        possible_cells.push(possible_cell); //console.log("Semental move 3: " + possible_cell);
+        possible_cells.push(possible_cell);
       }
 
       if (!front_right_stop && front_row != null && column_id + i < 9 && front_row[column_id + i] != null && (front_row[column_id + i].substr(0, 1) == "0" || front_row[column_id + i].substr(0, 1) == "1")) {
@@ -20913,7 +20909,7 @@ function getPossibleCellsSente(cells, row_id, column_id, piece) {
 
       if (!front_left_stop && front_row != null && column_id - i >= 0 && (front_row[column_id - i] == null || front_row[column_id - i].substr(0, 1) == "1")) {
         let possible_cell = (row_id + i).toString().concat(column_id - i);
-        possible_cells.push(possible_cell); //console.log("Semental move 4: " + possible_cell);
+        possible_cells.push(possible_cell);
       }
 
       if (!front_left_stop && front_row != null && column_id - i >= 0 && front_row[column_id - i] != null && (front_row[column_id - i].substr(0, 1) == "0" || front_row[column_id - i].substr(0, 1) == "1")) {
@@ -20925,26 +20921,26 @@ function getPossibleCellsSente(cells, row_id, column_id, piece) {
 
     if (row_id > 0 && (row[column_id] == null || row[column_id].substr(0, 1) == "1")) {
       let possible_cell = (row_id - 1).toString().concat(column_id);
-      possible_cells.push(possible_cell); //console.log("Semental move 1.2: " + possible_cell);
+      possible_cells.push(possible_cell);
     }
 
     row = cells[row_id];
 
     if (column_id > 0 && (row[column_id - 1] == null || row[column_id - 1].substr(0, 1) == "1")) {
       let possible_cell = row_id.toString().concat(column_id - 1);
-      possible_cells.push(possible_cell); //console.log("Semental move 1.4: " + possible_cell);
+      possible_cells.push(possible_cell);
     }
 
     if (column_id < 8 && (row[column_id + 1] == null || row[column_id + 1].substr(0, 1) == "1")) {
       let possible_cell = row_id.toString().concat(column_id + 1);
-      possible_cells.push(possible_cell); //console.log("Semental move 1.5: " + possible_cell);
+      possible_cells.push(possible_cell);
     }
 
     row = cells[row_id + 1];
 
     if (row_id < 8 && (row[column_id] == null || row[column_id].substr(0, 1) == "1")) {
       let possible_cell = (row_id + 1).toString().concat(column_id);
-      possible_cells.push(possible_cell); //console.log("Semental move 1.7: " + possible_cell);
+      possible_cells.push(possible_cell);
     }
   } else if (piece == "AR") {
     var actual_row = cells[row_id];
@@ -20958,12 +20954,12 @@ function getPossibleCellsSente(cells, row_id, column_id, piece) {
     for (let i = 1; i < 9; i++) {
       if (!right_stop && column_id - i >= 0 && (actual_row[column_id - i] == null || actual_row[column_id - i].substr(0, 1) == "1")) {
         let possible_cell = row_id.toString().concat(column_id - i);
-        possible_cells.push(possible_cell); //console.log("Dragon move 1: " + possible_cell);
+        possible_cells.push(possible_cell);
       }
 
       if (!left_stop && column_id + i <= 8 && (actual_row[column_id + i] == null || actual_row[column_id + i].substr(0, 1) == "1")) {
         let possible_cell = row_id.toString().concat(column_id + i);
-        possible_cells.push(possible_cell); //console.log("Dragon move 2: " + possible_cell);
+        possible_cells.push(possible_cell);
       }
 
       if (!right_stop && column_id - i >= 0 && actual_row[column_id - i] != null && (actual_row[column_id - i].substr(0, 1) == "0" || actual_row[column_id - i].substr(0, 1) == "1")) {
@@ -20979,12 +20975,12 @@ function getPossibleCellsSente(cells, row_id, column_id, piece) {
 
       if (!back_stop && row_id - i >= 0 && (back_row[column_id] == null || back_row[column_id].substr(0, 1) == "1")) {
         let possible_cell = (row_id - i).toString().concat(column_id);
-        possible_cells.push(possible_cell); //console.log("Dragon move 3: " + possible_cell);
+        possible_cells.push(possible_cell);
       }
 
       if (!front_stop && row_id + i <= 8 && (front_row[column_id] == null || front_row[column_id].substr(0, 1) == "1")) {
         let possible_cell = (row_id + i).toString().concat(column_id);
-        possible_cells.push(possible_cell); //console.log("Dragon move 4: " + possible_cell);
+        possible_cells.push(possible_cell);
       }
 
       if (!back_stop && row_id - i >= 0 && back_row[column_id] != null && (back_row[column_id].substr(0, 1) == "0" || back_row[column_id].substr(0, 1) == "1")) {
@@ -21000,24 +20996,24 @@ function getPossibleCellsSente(cells, row_id, column_id, piece) {
 
     if (row_id > 0 && column_id > 0 && (row[column_id - 1] == null || row[column_id - 1].substr(0, 1) == "1")) {
       let possible_cell = (row_id - 1).toString().concat(column_id - 1);
-      possible_cells.push(possible_cell); //console.log("Dragon move 1.1: " + possible_cell);
+      possible_cells.push(possible_cell);
     }
 
     if (row_id > 0 && column_id < 8 && (row[column_id + 1] == null || row[column_id + 1].substr(0, 1) == "1")) {
       let possible_cell = (row_id - 1).toString().concat(column_id + 1);
-      possible_cells.push(possible_cell); //console.log("Dragon move 1.2: " + possible_cell);
+      possible_cells.push(possible_cell);
     }
 
     row = cells[row_id + 1];
 
     if (row_id < 8 && column_id < 8 && (row[column_id + 1] == null || row[column_id + 1].substr(0, 1) == "1")) {
       let possible_cell = (row_id + 1).toString().concat(column_id + 1);
-      possible_cells.push(possible_cell); //console.log("Dragon move 1.4: " + possible_cell);
+      possible_cells.push(possible_cell);
     }
 
     if (row_id < 8 && column_id > 0 && (row[column_id - 1] == null || row[column_id - 1].substr(0, 1) == "1")) {
       let possible_cell = (row_id + 1).toString().concat(column_id - 1);
-      possible_cells.push(possible_cell); //console.log("Dragon move 1.3: " + possible_cell);
+      possible_cells.push(possible_cell);
     }
   }
 
@@ -21033,7 +21029,7 @@ function getPossibleCellsGote(cells, row_id, column_id, piece) {
 
     if (row_id > 0 && (next_row[column_id] == null || next_row[column_id].substr(0, 1) == "0")) {
       let possible_cell = (row_id - 1).toString().concat(column_id);
-      possible_cells.push(possible_cell); //console.log(possible_cells)
+      possible_cells.push(possible_cell);
     }
   } else if (piece == "L") {
     var stop = false;
@@ -21047,8 +21043,7 @@ function getPossibleCellsGote(cells, row_id, column_id, piece) {
 
         if (row[column_id] != null && row[column_id].substr(0, 1) == "0") {
           stop = true;
-        } //console.log("Lance moves to: " + possible_cell)
-
+        }
       } else {
         break;
       }
@@ -21059,12 +21054,12 @@ function getPossibleCellsGote(cells, row_id, column_id, piece) {
     if (row_id > 1) {
       if ((row[column_id + 1] == null || row[column_id + 1].substr(0, 1) == "0") && column_id < 8) {
         let possible_cell = (row_id - 2).toString().concat(column_id + 1);
-        possible_cells.push(possible_cell); //console.log("Knight moves to: " + possible_cell)      
+        possible_cells.push(possible_cell);
       }
 
       if ((row[column_id - 1] == null || row[column_id - 1].substr(0, 1) == "0") && column_id - 1 >= 0) {
         let possible_cell = (row_id - 2).toString().concat(column_id - 1);
-        possible_cells.push(possible_cell); //console.log("Knight moves to: " + possible_cell)
+        possible_cells.push(possible_cell);
       }
     }
   } else if (piece == "G" || piece == "AP" || piece == "AL" || piece == "AK" || piece == "AS") {
@@ -21072,7 +21067,7 @@ function getPossibleCellsGote(cells, row_id, column_id, piece) {
 
     if (row_id < 8 && (row[column_id] == null || row[column_id].substr(0, 1) == "0")) {
       let possible_cell = (row_id + 1).toString().concat(column_id);
-      possible_cells.push(possible_cell); //console.log("G moves to: " + possible_cell)
+      possible_cells.push(possible_cell);
     }
 
     row = cells[row_id];
@@ -21108,29 +21103,29 @@ function getPossibleCellsGote(cells, row_id, column_id, piece) {
 
     if (row_id < 8 && column_id > 0 && (row[column_id - 1] == null || row[column_id - 1].substr(0, 1) == "0")) {
       let possible_cell = (row_id + 1).toString().concat(column_id - 1);
-      possible_cells.push(possible_cell); //console.log("Silver move: " + possible_cell);
+      possible_cells.push(possible_cell);
     }
 
     if (row_id < 8 && column_id < 8 && (row[column_id + 1] == null || row[column_id + 1].substr(0, 1) == "0")) {
       let possible_cell = (row_id + 1).toString().concat(column_id + 1);
-      possible_cells.push(possible_cell); //console.log("Silver move: " + possible_cell);
+      possible_cells.push(possible_cell);
     }
 
     row = cells[row_id - 1];
 
     if (row_id > 0 && column_id > 0 && (row[column_id - 1] == null || row[column_id - 1].substr(0, 1) == "0")) {
       let possible_cell = (row_id - 1).toString().concat(column_id - 1);
-      possible_cells.push(possible_cell); //console.log("Silver move: " + possible_cell);
+      possible_cells.push(possible_cell);
     }
 
     if (row_id > 0 && column_id < 8 && (row[column_id + 1] == null || row[column_id + 1].substr(0, 1) == "0")) {
       let possible_cell = (row_id - 1).toString().concat(column_id + 1);
-      possible_cells.push(possible_cell); //console.log("Silver move: " + possible_cell);
+      possible_cells.push(possible_cell);
     }
 
     if (row_id > 0 && (row[column_id] == null || row[column_id].substr(0, 1) == "0")) {
       let possible_cell = (row_id - 1).toString().concat(column_id);
-      possible_cells.push(possible_cell); //console.log("Silver move: " + possible_cell);
+      possible_cells.push(possible_cell);
     }
   } else if (piece == "KING") {
     row = cells[row_id - 1];
@@ -21190,12 +21185,12 @@ function getPossibleCellsGote(cells, row_id, column_id, piece) {
     for (let i = 1; i < 9; i++) {
       if (!right_stop && column_id - i >= 0 && (actual_row[column_id - i] == null || actual_row[column_id - i].substr(0, 1) == "0")) {
         let possible_cell = row_id.toString().concat(column_id - i);
-        possible_cells.push(possible_cell); //console.log("Rook move 1: " + possible_cell);
+        possible_cells.push(possible_cell);
       }
 
       if (!left_stop && column_id + i <= 8 && (actual_row[column_id + i] == null || actual_row[column_id + i].substr(0, 1) == "0")) {
         let possible_cell = row_id.toString().concat(column_id + i);
-        possible_cells.push(possible_cell); //console.log("Rook move 2: " + possible_cell);
+        possible_cells.push(possible_cell);
       }
 
       if (!right_stop && column_id - i >= 0 && actual_row[column_id - i] != null && (actual_row[column_id - i].substr(0, 1) == "0" || actual_row[column_id - i].substr(0, 1) == "1")) {
@@ -21211,12 +21206,12 @@ function getPossibleCellsGote(cells, row_id, column_id, piece) {
 
       if (!back_stop && row_id - i >= 0 && (back_row[column_id] == null || back_row[column_id].substr(0, 1) == "0")) {
         let possible_cell = (row_id - i).toString().concat(column_id);
-        possible_cells.push(possible_cell); // console.log("Rook move 3: " + possible_cell);
+        possible_cells.push(possible_cell);
       }
 
       if (!front_stop && row_id + i <= 8 && (front_row[column_id] == null || front_row[column_id].substr(0, 1) == "0")) {
         let possible_cell = (row_id + i).toString().concat(column_id);
-        possible_cells.push(possible_cell); //console.log("Rook move 4: " + possible_cell);
+        possible_cells.push(possible_cell);
       }
 
       if (!back_stop && row_id - i >= 0 && back_row[column_id] != null && (back_row[column_id].substr(0, 1) == "0" || back_row[column_id].substr(0, 1) == "1")) {
@@ -21241,7 +21236,7 @@ function getPossibleCellsGote(cells, row_id, column_id, piece) {
 
       if (!back_right_stop && back_row != null && column_id + i < 9 && (back_row[column_id + i] == null || back_row[column_id + i].substr(0, 1) == "0")) {
         let possible_cell = (row_id - i).toString().concat(column_id + i);
-        possible_cells.push(possible_cell); //console.log("Bishop move 1: " + possible_cell);
+        possible_cells.push(possible_cell);
       }
 
       if (!back_right_stop && back_row != null && column_id + i < 9 && back_row[column_id + i] != null && (back_row[column_id + i].substr(0, 1) == "0" || back_row[column_id + i].substr(0, 1) == "1")) {
@@ -21251,7 +21246,7 @@ function getPossibleCellsGote(cells, row_id, column_id, piece) {
 
       if (!back_left_stop && back_row != null && column_id - i >= 0 && (back_row[column_id - i] == null || back_row[column_id - i].substr(0, 1) == "0")) {
         let possible_cell = (row_id - i).toString().concat(column_id - i);
-        possible_cells.push(possible_cell); //console.log("Bishop move 2: " + possible_cell);
+        possible_cells.push(possible_cell);
       }
 
       if (!back_left_stop && back_row != null && column_id - i >= 0 && back_row[column_id - i] != null && (back_row[column_id - i].substr(0, 1) == "0" || back_row[column_id - i].substr(0, 1) == "1")) {
@@ -21261,7 +21256,7 @@ function getPossibleCellsGote(cells, row_id, column_id, piece) {
 
       if (!front_right_stop && front_row != null && column_id + i < 9 && (front_row[column_id + i] == null || front_row[column_id + i].substr(0, 1) == "0")) {
         let possible_cell = (row_id + i).toString().concat(column_id + i);
-        possible_cells.push(possible_cell); //console.log("Bishop move 3: " + possible_cell);
+        possible_cells.push(possible_cell);
       }
 
       if (!front_right_stop && front_row != null && column_id + i < 9 && front_row[column_id + i] != null && (front_row[column_id + i].substr(0, 1) == "0" || front_row[column_id + i].substr(0, 1) == "1")) {
@@ -21271,7 +21266,7 @@ function getPossibleCellsGote(cells, row_id, column_id, piece) {
 
       if (!front_left_stop && front_row != null && column_id - i >= 0 && (front_row[column_id - i] == null || front_row[column_id - i].substr(0, 1) == "0")) {
         let possible_cell = (row_id + i).toString().concat(column_id - i);
-        possible_cells.push(possible_cell); //console.log("Bishop move 4: " + possible_cell);
+        possible_cells.push(possible_cell);
       }
 
       if (!front_left_stop && front_row != null && column_id - i >= 0 && front_row[column_id - i] != null && (front_row[column_id - i].substr(0, 1) == "0" || front_row[column_id - i].substr(0, 1) == "1")) {
@@ -21292,7 +21287,7 @@ function getPossibleCellsGote(cells, row_id, column_id, piece) {
 
       if (!back_right_stop && back_row != null && column_id + i < 9 && (back_row[column_id + i] == null || back_row[column_id + i].substr(0, 1) == "0")) {
         let possible_cell = (row_id - i).toString().concat(column_id + i);
-        possible_cells.push(possible_cell); //console.log("Semental move 1: " + possible_cell);
+        possible_cells.push(possible_cell);
       }
 
       if (!back_right_stop && back_row != null && column_id + i < 9 && back_row[column_id + i] != null && (back_row[column_id + i].substr(0, 1) == "0" || back_row[column_id + i].substr(0, 1) == "1")) {
@@ -21302,7 +21297,7 @@ function getPossibleCellsGote(cells, row_id, column_id, piece) {
 
       if (!back_left_stop && back_row != null && column_id - i >= 0 && (back_row[column_id - i] == null || back_row[column_id - i].substr(0, 1) == "0")) {
         let possible_cell = (row_id - i).toString().concat(column_id - i);
-        possible_cells.push(possible_cell); //console.log("Semental move 2: " + possible_cell);
+        possible_cells.push(possible_cell);
       }
 
       if (!back_left_stop && back_row != null && column_id - i >= 0 && back_row[column_id - i] != null && (back_row[column_id - i].substr(0, 1) == "0" || back_row[column_id - i].substr(0, 1) == "1")) {
@@ -21312,7 +21307,7 @@ function getPossibleCellsGote(cells, row_id, column_id, piece) {
 
       if (!front_right_stop && front_row != null && column_id + i < 9 && (front_row[column_id + i] == null || front_row[column_id + i].substr(0, 1) == "0")) {
         let possible_cell = (row_id + i).toString().concat(column_id + i);
-        possible_cells.push(possible_cell); //console.log("Semental move 3: " + possible_cell);
+        possible_cells.push(possible_cell);
       }
 
       if (!front_right_stop && front_row != null && column_id + i < 9 && front_row[column_id + i] != null && (front_row[column_id + i].substr(0, 1) == "0" || front_row[column_id + i].substr(0, 1) == "1")) {
@@ -21322,7 +21317,7 @@ function getPossibleCellsGote(cells, row_id, column_id, piece) {
 
       if (!front_left_stop && front_row != null && column_id - i >= 0 && (front_row[column_id - i] == null || front_row[column_id - i].substr(0, 1) == "0")) {
         let possible_cell = (row_id + i).toString().concat(column_id - i);
-        possible_cells.push(possible_cell); //console.log("Semental move 4: " + possible_cell);
+        possible_cells.push(possible_cell);
       }
 
       if (!front_left_stop && front_row != null && column_id - i >= 0 && front_row[column_id - i] != null && (front_row[column_id - i].substr(0, 1) == "0" || front_row[column_id - i].substr(0, 1) == "1")) {
@@ -21334,26 +21329,26 @@ function getPossibleCellsGote(cells, row_id, column_id, piece) {
 
     if (row_id > 0 && (row[column_id] == null || row[column_id].substr(0, 1) == "0")) {
       let possible_cell = (row_id - 1).toString().concat(column_id);
-      possible_cells.push(possible_cell); //console.log("Semental move 1.2: " + possible_cell);
+      possible_cells.push(possible_cell);
     }
 
     row = cells[row_id];
 
     if (column_id > 0 && (row[column_id - 1] == null || row[column_id - 1].substr(0, 1) == "0")) {
       let possible_cell = row_id.toString().concat(column_id - 1);
-      possible_cells.push(possible_cell); //console.log("Semental move 1.4: " + possible_cell);
+      possible_cells.push(possible_cell);
     }
 
     if (column_id < 8 && (row[column_id + 1] == null || row[column_id + 1].substr(0, 1) == "0")) {
       let possible_cell = row_id.toString().concat(column_id + 1);
-      possible_cells.push(possible_cell); //console.log("Semental move 1.5: " + possible_cell);
+      possible_cells.push(possible_cell);
     }
 
     row = cells[row_id + 1];
 
     if (row_id < 8 && (row[column_id] == null || row[column_id].substr(0, 1) == "0")) {
       let possible_cell = (row_id + 1).toString().concat(column_id);
-      possible_cells.push(possible_cell); //console.log("Semental move 1.7: " + possible_cell);
+      possible_cells.push(possible_cell);
     }
   } else if (piece == "AR") {
     var actual_row = cells[row_id];
@@ -21367,12 +21362,12 @@ function getPossibleCellsGote(cells, row_id, column_id, piece) {
     for (let i = 1; i < 9; i++) {
       if (!right_stop && column_id - i >= 0 && (actual_row[column_id - i] == null || actual_row[column_id - i].substr(0, 1) == "0")) {
         let possible_cell = row_id.toString().concat(column_id - i);
-        possible_cells.push(possible_cell); //console.log("Dragon move 1: " + possible_cell);
+        possible_cells.push(possible_cell);
       }
 
       if (!left_stop && column_id + i <= 8 && (actual_row[column_id + i] == null || actual_row[column_id + i].substr(0, 1) == "0")) {
         let possible_cell = row_id.toString().concat(column_id + i);
-        possible_cells.push(possible_cell); //console.log("Dragon move 2: " + possible_cell);
+        possible_cells.push(possible_cell);
       }
 
       if (!right_stop && column_id - i >= 0 && actual_row[column_id - i] != null && (actual_row[column_id - i].substr(0, 1) == "0" || actual_row[column_id - i].substr(0, 1) == "1")) {
@@ -21388,12 +21383,12 @@ function getPossibleCellsGote(cells, row_id, column_id, piece) {
 
       if (!back_stop && row_id - i >= 0 && (back_row[column_id] == null || back_row[column_id].substr(0, 1) == "0")) {
         let possible_cell = (row_id - i).toString().concat(column_id);
-        possible_cells.push(possible_cell); //console.log("Dragon move 3: " + possible_cell);
+        possible_cells.push(possible_cell);
       }
 
       if (!front_stop && row_id + i <= 8 && (front_row[column_id] == null || front_row[column_id].substr(0, 1) == "0")) {
         let possible_cell = (row_id + i).toString().concat(column_id);
-        possible_cells.push(possible_cell); //console.log("Dragon move 4: " + possible_cell);
+        possible_cells.push(possible_cell);
       }
 
       if (!back_stop && row_id - i >= 0 && back_row[column_id] != null && (back_row[column_id].substr(0, 1) == "0" || back_row[column_id].substr(0, 1) == "1")) {
@@ -21409,24 +21404,24 @@ function getPossibleCellsGote(cells, row_id, column_id, piece) {
 
     if (row_id > 0 && column_id > 0 && (row[column_id - 1] == null || row[column_id - 1].substr(0, 1) == "0")) {
       let possible_cell = (row_id - 1).toString().concat(column_id - 1);
-      possible_cells.push(possible_cell); //console.log("Dragon move 1.1: " + possible_cell);
+      possible_cells.push(possible_cell);
     }
 
     if (row_id > 0 && column_id < 8 && (row[column_id + 1] == null || row[column_id + 1].substr(0, 1) == "0")) {
       let possible_cell = (row_id - 1).toString().concat(column_id + 1);
-      possible_cells.push(possible_cell); //console.log("Dragon move 1.2: " + possible_cell);
+      possible_cells.push(possible_cell);
     }
 
     row = cells[row_id + 1];
 
     if (row_id < 8 && column_id < 8 && (row[column_id + 1] == null || row[column_id + 1].substr(0, 1) == "0")) {
       let possible_cell = (row_id + 1).toString().concat(column_id + 1);
-      possible_cells.push(possible_cell); //console.log("Dragon move 1.4: " + possible_cell);
+      possible_cells.push(possible_cell);
     }
 
     if (row_id < 8 && column_id > 0 && (row[column_id - 1] == null || row[column_id - 1].substr(0, 1) == "0")) {
       let possible_cell = (row_id + 1).toString().concat(column_id - 1);
-      possible_cells.push(possible_cell); //console.log("Dragon move 1.3: " + possible_cell);
+      possible_cells.push(possible_cell);
     }
   }
 
@@ -21486,7 +21481,7 @@ function getFreePawnColumns(cells, player) {
 
     for (let j = 0; j < 9; j++) {
       row = cells[j];
-      piece = row[i]; //console.log("Voy por: " + i.toString() + " " + j.toString() + " y es " + piece + " y soy " + player)
+      piece = row[i];
 
       if (piece != null && piece.substr(1, 2) == "P" && piece.substr(0, 1) == player) {
         free = false;
@@ -21506,10 +21501,8 @@ function movePieceToAvoidMate(G, player_and_piece, initial_row, initial_column, 
   /////////////////////////// MOVIMIENTO //////////////////////////
   const G_clone = JSON.parse(JSON.stringify(G));
   var player = player_and_piece.substr(0, 1);
-  var player_piece = player_and_piece.substr(1, 4); //console.log("Player: " + player + " wants to move " + player_piece)
-
-  let possible_cells = getPossibleCells(G_clone.cells, initial_row, initial_column, player_piece, player); //console.log("Movimientos validos: " + possible_cells)
-
+  var player_piece = player_and_piece.substr(1, 4);
+  let possible_cells = getPossibleCells(G_clone.cells, initial_row, initial_column, player_piece, player);
   var valid_move = false;
   var row = G_clone.cells[initial_row];
   var new_row = G_clone.cells[target_row];
@@ -21544,8 +21537,7 @@ function movePieceToAvoidMate(G, player_and_piece, initial_row, initial_column, 
         } else {
           G_clone.gote_captured_pieces.push(target_piece);
         }
-      } //console.log("Flag D. Movimiento realizado: -> fila actualizada: " + G_clone.cells[target_row] + " -> Nueva pieza: " + new_row[target_column])
-
+      }
 
       break;
     }
@@ -21580,12 +21572,10 @@ function movePieceToAvoidMate(G, player_and_piece, initial_row, initial_column, 
 
   if (still_check) {
     return false;
-  } //console.log("Flag F.3. Check: " + still_check)   
-  ////////////////////////////////////////////////////////////////    
+  } ////////////////////////////////////////////////////////////////    
 
 
-  isCheck(G_clone, player); //console.log("Flag G. Final: " + mmm)
-
+  isCheck(G_clone, player);
   return true;
 }
 
@@ -21636,10 +21626,7 @@ function revivePieceToAvoidMate(G, target_row, target_column, player_and_piece) 
 
 function movePiece(G, ctx, initial_row, initial_column, target_row, target_column, player_piece) {
   /////////////////////////// MOVIMIENTO //////////////////////////
-  //console.log("Player: " + ctx.currentPlayer + " wants to move " + player_piece + " de " + initial_row+ " a " + target_row)
-  //console.log("Y de " + initial_column + " a " + target_column)
-  let possible_cells = getPossibleCells(G.cells, initial_row, initial_column, player_piece, ctx.currentPlayer); //console.log(possible_cells)
-
+  let possible_cells = getPossibleCells(G.cells, initial_row, initial_column, player_piece, ctx.currentPlayer);
   var valid_move = false;
   var row = G.cells[initial_row];
   var new_row = G.cells[target_row];
@@ -21681,9 +21668,6 @@ function movePiece(G, ctx, initial_row, initial_column, target_row, target_colum
   }
 
   if (valid_move == false) {
-    alert("INVALIDO...");
-    console.log("Player: " + ctx.currentPlayer + " wants to move " + player_piece + " de " + initial_row + " a " + target_row);
-    console.log("Y de " + initial_column + " a " + target_column);
     return _core.INVALID_MOVE;
   } /////////////////////////// MOVIMIENTO REY //////////////////////////
 
@@ -21733,7 +21717,6 @@ function movePiece(G, ctx, initial_row, initial_column, target_row, target_colum
 function revivePiece(G, ctx, target_row, target_column, player_piece, highlight = null) {
   /////////////////////////// MOVIMIENTO //////////////////////////
   let possible_cells = getPossibleRevive(G.cells, player_piece.substr(1, 4), player_piece.substr(0, 1));
-  console.log("pos: " + possible_cells);
   var valid_move = false;
   var new_row = G.cells[target_row];
 
@@ -21791,11 +21774,11 @@ function revivePiece(G, ctx, target_row, target_column, player_piece, highlight 
   } ////////////////////////////////////////////////////////////////    
 
 
-  isCheck(G, ctx.currentPlayer);
-
   if (highlight != null) {
     highlight.className = "cell";
   }
+
+  return G;
 } //////////------END FUNCTIONS---------------/////////
 
 
@@ -21839,8 +21822,7 @@ function isCheckMate(G, ctx) {
     is_check = isCheck(G, "1");
   } else {
     is_check = isCheck(G, "0");
-  } //console.log("Lets check the Mate..is Check??: " + is_check + " and im " + ctx.currentPlayer)
-  //Si hay jaque, exploramos todas las fichas del otro jugador para ver si hay algún movimiento que evite el jaque mate
+  } //Si hay jaque, exploramos todas las fichas del otro jugador para ver si hay algún movimiento que evite el jaque mate
 
 
   if (is_check) {
@@ -21894,7 +21876,6 @@ function isCheckMate(G, ctx) {
     if (save_mate) {
       return false;
     } else {
-      console.log("MATE");
       return true;
     }
   } else {
@@ -25690,93 +25671,7 @@ var process = require("process");
 
   module.exports = require('./lib/node-rules');
 })(module.exports);
-},{"./lib/node-rules":"node_modules/node-rules/lib/node-rules.js"}],"src/rules/BasicRules.js":[function(require,module,exports) {
-"use strict";
-
-var _Game = require("../Game.js");
-
-var BasicRules = [{
-  ///////moveRandom
-  "priority": 2,
-  "condition": function (R) {
-    //console.log("Rule: moveRandom")
-    //console.log("player: " + this.player + this.state.ctx.currentPlayer)
-    R.when(this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
-  },
-  "consequence": function (R) {
-    //console.log("Rule activated: playBoard")
-    //var state = require('./ShogiRBS.js')
-    //var G = state.G
-    var rand = parseInt(Math.random() * (this.possibleMoves.length - 0) + 0);
-    var new_position = this.possibleMoves[rand];
-    var row = new_position.substr(0, 1);
-    var column = new_position.substr(1, 1); //this.result = true;
-
-    this.reason = this.row + this.column + row + column + this.piece;
-    this.move = row + column; //console.log(this);
-
-    R.stop();
-  }
-}, {
-  ///////Capture if u can
-  "priority": 3,
-  "condition": function (R) {
-    //console.log("Rule: Capture")
-    //console.log("player: " + this.player + this.state.ctx.currentPlayer)
-    let threats = getThreats(this.state.G, this.possibleMoves, this.state.ctx.currentPlayer); //console.log(threads)
-
-    R.when(this.player == this.state.ctx.currentPlayer && this.isHand == "0" && threats != "");
-  },
-  "consequence": function (R) {
-    console.log("Rule activated: Capture"); //var state = require('./ShogiRBS.js')
-    //var G = state.G
-
-    let threats = getThreats(this.state.G, this.possibleMoves, this.state.ctx.currentPlayer);
-    var rand = parseInt(Math.random() * (threats.length - 0) + 0);
-    var thread = threats[rand];
-    var row = thread[1].substr(0, 1);
-    var column = thread[2].substr(0, 1);
-    console.log(thread);
-    console.log(row);
-    console.log(column); //this.result = true;
-
-    this.reason = this.row + this.column + row + column + this.piece;
-    this.move = row + column; //console.log(this);
-
-    R.stop();
-  }
-}];
-module.exports = {
-  BasicRules
-};
-
-function getThreats(G, possibleMoves, player) {
-  let threats = [];
-  var row;
-  var column;
-  var G_row;
-  var count = 0;
-
-  for (let cell of possibleMoves) {
-    row = cell.substr(0, 1);
-    column = cell.substr(1, 1);
-    G_row = G.cells[row]; //console.log(G_row[column])
-
-    if (G_row[column] != null && G_row[column].substr(0, 1) != player.toString()) {
-      var thread = [G_row[column], row, column];
-      threats[count] = thread;
-      count = count + 1;
-    }
-  }
-
-  for (let th of threats) {
-    console.log("threat: ");
-    console.log(th);
-  }
-
-  return threats;
-}
-},{"../Game.js":"src/Game.js"}],"src/GameRBS.js":[function(require,module,exports) {
+},{"./lib/node-rules":"node_modules/node-rules/lib/node-rules.js"}],"src/GameRBS.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -25794,60 +25689,16 @@ var NodeRules = require('node-rules');
 var RuleEngine = require('node-rules'); ///Variables
 
 
-var G;
-var state; //////////FACTS///////////////////
-//////////RULES/////////////////
-
-var rules2 = [{
-  ///////playBoardPiece
-  "condition": function (R) {
-    console.log("Rule: playBoard");
-    console.log(this); //var state = require('./ShogiRBS.js')
-    //var G = state.G
-
-    var possible_cells = (0, _Game.getPossibleCells)(G.cells, parseInt(this.row), parseInt(this.column), this.piece, this.player);
-    console.log(G);
-    console.log(possible_cells);
-    R.when(possible_cells != "" && this.player == state.ctx.currentPlayer && this.isHand == "0");
-  },
-  "consequence": function (R) {
-    console.log("Rule activated: playBoard");
-
-    var state = require('./GameRBS.js');
-
-    var G = state.G;
-    var possible_cells = (0, _Game.getPossibleCells)(G.cells, parseInt(this.row), parseInt(this.column), this.piece, this.player);
-    console.log(possible_cells);
-    var rand = parseInt(Math.random() * (possible_cells.length - 0) + 0);
-    var new_position = possible_cells[rand];
-    var row = new_position.substr(0, 1);
-    var column = new_position.substr(1, 1); //this.result = true;
-
-    this.reason = this.row + this.column + row + column + this.piece;
-    this.move = row + column; //console.log(this);
-
-    R.next();
-  }
-}]; ////////////////////////////////////////////////////////////////////////////////////////
+var state; ////////////////////////////////////////////////////////////////////////////////////////
 /////submit of rules////
 
-var basic_rules = require('./rules/BasicRules.js');
 /* Run engine for each fact */
 
-
 async function executeEngine(gameState, rules, fn) {
-  var ruleSet = [rules];
-  var R = new RuleEngine(basic_rules, {
+  var R = new RuleEngine(rules, {
     ignoreFactChanges: true
   });
-  console.log(rules);
-  console.log(ruleSet);
-  console.log(basic_rules);
-  state = gameState; //module.exports = state
-  //console.log("Engine: ")  
-  //console.log(state.G.cells)  
-  //console.log("GenshiBoushin: ")
-  //console.log(rules.GenshiBougin)
+  state = gameState;
 
   var result_facts = function func() {
     return new Promise((resolve, reject) => {
@@ -25857,37 +25708,40 @@ async function executeEngine(gameState, rules, fn) {
     });
   };
 
-  let facts = await result_facts(); //console.log("facts: " )  
-  //console.log(facts)  
-
+  let facts = await result_facts();
   let moves = [];
-  let final_moves = []; //console.log("facts: " + facts)  
+  let final_moves = [];
 
   for (let fact of facts) {
-    //console.log("Voy por: " + fact.piece)
     let m = await new Promise(resolve => R.execute(fact, function (data) {
-      if (data.move != null) {
-        //console.log("Movimiento: " + data.move)
-        let move_info = [];
-        move_info.push(data.row);
-        move_info.push(data.column);
-        move_info.push(data.move);
-        move_info.push(data.piece);
-        move_info.push(data.isHand);
-        move_info.push(data.player);
-        moves.push(move_info);
-        resolve(move_info);
+      if (data.moves[0] != null) {
+        //console.log("Movimiento:" + data.moves + " Prioridad: " + data.priorities)
+        moves = [];
+
+        for (let [index, mv] of data.moves.entries()) {
+          var move_info = [];
+          move_info.push(data.row);
+          move_info.push(data.column);
+          move_info.push(mv);
+          move_info.push(data.piece);
+          move_info.push(data.isHand);
+          move_info.push(data.priorities[index]);
+          moves.push(move_info);
+          resolve(moves);
+        }
       } else {
         resolve("");
       }
     }));
 
     if (m != "") {
-      final_moves.push(m);
+      for (let mv of m) {
+        final_moves.push(mv);
+      }
     }
-  }
+  } //console.log("Final moves: " + final_moves)
 
-  console.log("Final moves: " + final_moves);
+
   fn(final_moves);
 } /////submit of facts////
 
@@ -25914,14 +25768,14 @@ function submitFacts(state, fn) {
   for (let i = 0; i < G.sente_captured_pieces.length; i++) {
     player_and_piece = G.sente_captured_pieces[i];
     var piece = player_and_piece.substr(0, 4);
-    var fact = createFact(state, piece, 0, 0, "0", 1);
+    var fact = createReviveFact(state, piece, 0, 0, "0", 1);
     facts.push(fact);
   }
 
   for (let i = 0; i < G.gote_captured_pieces.length; i++) {
     player_and_piece = G.gote_captured_pieces[i];
     var piece = player_and_piece.substr(0, 4);
-    var fact = createFact(state, piece, 0, 0, "1", 1);
+    var fact = createReviveFact(state, piece, 0, 0, "1", 1);
     facts.push(fact);
   } //facts.push(fact2)
 
@@ -25932,6 +25786,8 @@ function submitFacts(state, fn) {
 function createFact(state, piece_type, row_id, column_id, player_id, hand) {
   var factName = player_id.concat(piece_type).concat(row_id.toString()).concat(column_id.toString()).concat(hand.toString());
   var value = getValueOfPiece(piece_type, hand);
+  var factMoves = [];
+  var factPriorities = [];
   var factName = {
     "piece": piece_type.toString(),
     "player": player_id.toString(),
@@ -25940,7 +25796,29 @@ function createFact(state, piece_type, row_id, column_id, player_id, hand) {
     "isHand": hand.toString(),
     "value": value.toString(),
     "state": state,
-    "possibleMoves": (0, _Game.getPossibleCells)(state.G.cells, parseInt(row_id), parseInt(column_id), piece_type, player_id)
+    "possibleMoves": (0, _Game.getPossibleCells)(state.G.cells, parseInt(row_id), parseInt(column_id), piece_type, player_id),
+    "moves": factMoves,
+    "priorities": factPriorities
+  };
+  return factName;
+}
+
+function createReviveFact(state, piece_type, row_id, column_id, player_id, hand) {
+  var factName = player_id.concat(piece_type).concat(row_id.toString()).concat(column_id.toString()).concat(hand.toString());
+  var value = getValueOfPiece(piece_type, hand);
+  var factMoves = [];
+  var factPriorities = [];
+  var factName = {
+    "piece": piece_type.toString(),
+    "player": player_id.toString(),
+    "row": row_id.toString(),
+    "column": column_id.toString(),
+    "isHand": hand.toString(),
+    "value": value.toString(),
+    "state": state,
+    "possibleMoves": (0, _Game.getPossibleRevive)(state.G.cells, piece_type, player_id),
+    "moves": factMoves,
+    "priorities": factPriorities
   };
   return factName;
 }
@@ -26036,7 +25914,7 @@ function getValueOfPiece(piece, isHand) {
 
   return value;
 }
-},{"./Game.js":"src/Game.js","node-rules":"node_modules/node-rules/index.js","./GameRBS.js":"src/GameRBS.js","./rules/BasicRules.js":"src/rules/BasicRules.js"}],"src/rules/StrategyRules.js":[function(require,module,exports) {
+},{"./Game.js":"src/Game.js","node-rules":"node_modules/node-rules/index.js"}],"src/rules/StrategyRules.js":[function(require,module,exports) {
 "use strict";
 
 var _Game = require("../Game.js");
@@ -26044,48 +25922,88 @@ var _Game = require("../Game.js");
 var StrategyRules = [{
   ///////rook strategy
   "condition": function (R) {
-    console.log("Rule: define rook strategy");
+    //console.log("Rule: define rook strategy")
     R.when(this.rook == null && this.player == this.state.ctx.currentPlayer && this.phase == 0);
   },
   "consequence": function (R) {
-    console.log("Rule activated: define rook strategy");
+    // console.log("Rule activated: define rook strategy")
     var rand = Math.round(Math.random());
 
     if (rand == 1) {
       this.rook = "static";
     } else {
       this.rook = "ranging";
-    }
+    } //console.log("Rook: " + this.rook)
 
-    console.log("Rook: " + this.rook);
+
     R.next();
   }
 }, {
-  ///////rook ruleSet
+  ///////Static rook ruleSet
   "condition": function (R) {
-    console.log("Rule: rook static strategy");
+    // console.log("Rule: rook static strategy")
     R.when(this.rook == "static" && this.player == this.state.ctx.currentPlayer);
   },
   "consequence": function (R) {
-    console.log("Rule activated: static rook strategy");
+    //console.log("Rule activated: static rook strategy")
     let ruleSet = this.strategy;
-    console.log(ruleSet);
     ruleSet.push("StaticRookRules");
     this.strategy = ruleSet;
     R.next();
   }
 }, {
-  ///////rook ruleSet
+  ///////Rangling rook ruleSet
   "condition": function (R) {
-    console.log("Rule: ranging rook strategy");
+    //console.log("Rule: ranging rook strategy")
     R.when(this.rook == "ranging" && this.player == this.state.ctx.currentPlayer);
   },
   "consequence": function (R) {
-    console.log("Rule activated: ranging rook strategy");
+    //console.log("Rule activated: ranging rook strategy")
     let ruleSet = this.strategy;
-    console.log(ruleSet);
     ruleSet.push("RangingRookRules");
     this.strategy = ruleSet;
+    R.next();
+  }
+}, {
+  ///////Yagura Castle
+  "condition": function (R) {
+    //console.log("Rule: Yagura Castle")
+    R.when(this.castle == null && this.rook == "static" && this.oposing_rook == "static" && this.player == this.state.ctx.currentPlayer);
+  },
+  "consequence": function (R) {
+    //console.log("Rule activated: Yagura Castle")
+    let ruleSet = this.strategy;
+    ruleSet.push("Yagura");
+    this.strategy = ruleSet; //this.castle = "Yagura"
+
+    R.next();
+  }
+}, {
+  ///////Boat Castle set
+  "condition": function (R) {
+    //console.log("Rule: Boat Castle")
+    R.when(this.castle == null && this.rook == "static" && this.oposing_rook == "ranging" && this.player == this.state.ctx.currentPlayer);
+  },
+  "consequence": function (R) {
+    //console.log("Rule activated: Boat Castle")
+    let ruleSet = this.strategy;
+    ruleSet.push("Boat");
+    this.strategy = ruleSet; //this.castle = "Boat"
+
+    R.next();
+  }
+}, {
+  ///////Mino Castle set
+  "condition": function (R) {
+    //console.log("Rule: Mino Castle")
+    R.when(this.castle == null && this.rook == "ranging" && this.oposing_rook == "static" && this.player == this.state.ctx.currentPlayer);
+  },
+  "consequence": function (R) {
+    //console.log("Rule activated: Mino Castle")
+    let ruleSet = this.strategy;
+    ruleSet.push("Mino");
+    this.strategy = ruleSet; //this.castle = "Mino"
+
     R.next();
   }
 }];
@@ -26105,7 +26023,8 @@ var RuleEngine = require('node-rules'); ///Variables
 
 
 var G;
-var state; ////////////////////////////////////////////////////////////////////////////////////////
+var state;
+var rooks = [null, null]; ////////////////////////////////////////////////////////////////////////////////////////
 /////submit of rules////
 
 var strategy_rules = require('./rules/StrategyRules.js');
@@ -26116,11 +26035,7 @@ var R = new RuleEngine(strategy_rules.StrategyRules, {
 /* Run engine for each fact */
 
 async function executeStrategyEngine(gameState, fn) {
-  state = gameState; //module.exports = state
-  //console.log("Engine: ")  
-  //console.log(state.G.cells)  
-  //console.log("GenshiBoushin: ")
-  //console.log(rules.GenshiBougin)
+  state = gameState;
 
   var result_facts = function func() {
     return new Promise((resolve, reject) => {
@@ -26131,15 +26046,17 @@ async function executeStrategyEngine(gameState, fn) {
   };
 
   let facts = await result_facts();
-  console.log("facts: ");
+  console.log("Strategy facts: ");
   console.log(facts);
-  let rules = []; //console.log("facts: " + facts)  
+  let rules = [];
 
   for (let fact of facts) {
-    //console.log("Voy por: " + fact.piece)
     let m = await new Promise(resolve => R.execute(fact, function (data) {
       if (data.strategy != null) {
-        console.log("Fact: " + data.rook);
+        if (data.rook != null) {
+          rooks[parseInt(data.player)] = data.rook;
+        }
+
         let move_info = data.strategy;
         resolve(move_info);
       } else {
@@ -26150,7 +26067,7 @@ async function executeStrategyEngine(gameState, fn) {
     if (m != "") {
       rules.push(m);
     }
-  } //console.log("Final moves: " + final_moves)
+  } //console.log("Final rules: " + rules)
 
 
   fn(rules);
@@ -26173,10 +26090,18 @@ function submitFacts(state, fn) {
 
 function createFact(state, player_id) {
   var factName = player_id;
+
+  if (player_id == "0") {
+    var rival_id = "1";
+  } else {
+    var rival_id = "0";
+  }
+
   var ruleSet = [];
   var factName = {
     "player": player_id.toString(),
-    "rook": null,
+    "rook": rooks[player_id],
+    "oposing_rook": rooks[rival_id],
     "castle": null,
     "state": state,
     "strategy": ruleSet,
@@ -26278,26 +26203,88 @@ function getValueOfPiece(piece, isHand) {
 }
 },{"node-rules":"node_modules/node-rules/index.js","./rules/StrategyRules.js":"src/rules/StrategyRules.js"}],"src/rules/OpeningRookRules/StaticRookRules.js":[function(require,module,exports) {
 var StaticRookRules = [{
-  ///////moveRandom
-  "priority": 1,
+  ///////Advance Pawn
+  "priority": 8,
   "condition": function (R) {
-    //console.log("Rule: moveRandom")
-    //console.log("player: " + this.player + this.state.ctx.currentPlayer)
-    R.when(this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+    var notPositioned = false;
+
+    if (this.piece == "P" && (this.column == 1 && this.row == 2 && this.player == "0" || this.column == 7 && this.row == 6 && this.player == "1")) {
+      notPositioned = true;
+    }
+
+    R.when(notPositioned && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
   },
   "consequence": function (R) {
-    //console.log("Rule activated: playBoard")
-    //var state = require('./ShogiRBS.js')
-    //var G = state.G
-    var rand = parseInt(Math.random() * (this.possibleMoves.length - 0) + 0);
-    var new_position = this.possibleMoves[rand];
+    //console.log("Rule activated: Yagura pawn")
+    var new_position;
+
+    if (this.player == "0") {
+      new_position = "31";
+    } else {
+      new_position = "57";
+    }
+
     var row = new_position.substr(0, 1);
-    var column = new_position.substr(1, 1); //this.result = true;
+    var column = new_position.substr(1, 1);
+    this.priorities.push(8);
+    this.moves.push(row + column);
+    R.next();
+  }
+}, {
+  ///////Advance Pawn
+  "priority": 8,
+  "condition": function (R) {
+    var notPositioned = false;
 
-    this.reason = this.row + this.column + row + column + this.piece;
-    this.move = row + column; //console.log(this);
+    if (this.piece == "P" && (this.column == 1 && this.row == 3 && this.player == "0" || this.column == 7 && this.row == 5 && this.player == "1")) {
+      notPositioned = true;
+    }
 
-    R.stop();
+    R.when(notPositioned && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+  },
+  "consequence": function (R) {
+    //console.log("Rule activated: Yagura pawn")
+    var new_position;
+
+    if (this.player == "0") {
+      new_position = "41";
+    } else {
+      new_position = "47";
+    }
+
+    var row = new_position.substr(0, 1);
+    var column = new_position.substr(1, 1);
+    this.priorities.push(8);
+    this.moves.push(row + column);
+    R.next();
+  }
+}, {
+  ///////Advance Pawn
+  "priority": 5,
+  "condition": function (R) {
+    var notPositioned = false;
+
+    if (this.piece == "P" && (this.column == 1 && this.row == 4 && this.player == "0" || this.column == 7 && this.row == 4 && this.player == "1")) {
+      notPositioned = true;
+    }
+
+    R.when(notPositioned && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+  },
+  "consequence": function (R) {
+    //console.log("Rule activated: Yagura pawn")
+    var new_position;
+
+    if (this.player == "0") {
+      new_position = "51";
+    } else {
+      new_position = "37";
+    }
+
+    var row = new_position.substr(0, 1);
+    var column = new_position.substr(1, 1);
+    this.priorities.push(7);
+    this.moves.push(row + column);
+    R.next();
   }
 }];
 module.exports = {
@@ -26305,32 +26292,1450 @@ module.exports = {
 };
 },{}],"src/rules/OpeningRookRules/RangingRookRules.js":[function(require,module,exports) {
 var RangingRookRules = [{
+  ///////Forth column
+  "priority": 9,
+  "condition": function (R) {
+    var notPositioned = false;
+
+    if (this.piece == "R" && (this.column == 1 && this.row == 1 && this.player == "0" || this.column == 7 && this.row == 7 && this.player == "1")) {
+      notPositioned = true;
+    }
+
+    R.when(notPositioned && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+  },
+  "consequence": function (R) {
+    //console.log("Rule activated: Yagura pawn")
+    var new_position;
+
+    if (this.player == "0") {
+      new_position = "15";
+    } else {
+      new_position = "73";
+    }
+
+    var row = new_position.substr(0, 1);
+    var column = new_position.substr(1, 1);
+    this.priorities.push(10);
+    this.moves.push(row + column);
+    R.next();
+  }
+}, {
+  ///////Third column
+  "priority": 9,
+  "condition": function (R) {
+    var notPositioned = false;
+
+    if (this.piece == "R" && (this.column == 1 && this.row == 1 && this.player == "0" || this.column == 7 && this.row == 7 && this.player == "1")) {
+      notPositioned = true;
+    }
+
+    R.when(notPositioned && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+  },
+  "consequence": function (R) {
+    //console.log("Rule activated: Yagura pawn")
+    var new_position;
+
+    if (this.player == "0") {
+      new_position = "16";
+    } else {
+      new_position = "72";
+    }
+
+    var row = new_position.substr(0, 1);
+    var column = new_position.substr(1, 1);
+    this.priorities.push(10);
+    this.moves.push(row + column);
+    R.next();
+  }
+}, {
+  ///////Opposing rooks
+  "priority": 9,
+  "condition": function (R) {
+    var notPositioned = false;
+
+    if (this.piece == "R" && (this.column == 1 && this.row == 1 && this.player == "0" || this.column == 7 && this.row == 7 && this.player == "1")) {
+      notPositioned = true;
+    }
+
+    R.when(notPositioned && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+  },
+  "consequence": function (R) {
+    //console.log("Rule activated: Yagura pawn")
+    var new_position;
+
+    if (this.player == "0") {
+      new_position = "17";
+    } else {
+      new_position = "71";
+    }
+
+    var row = new_position.substr(0, 1);
+    var column = new_position.substr(1, 1);
+    this.priorities.push(10);
+    this.moves.push(row + column);
+    R.next();
+  }
+}];
+3;
+module.exports = {
+  RangingRookRules
+};
+},{}],"src/rules/Castles/Yagura.js":[function(require,module,exports) {
+"use strict";
+
+var _Game = require("../../Game.js");
+
+var Yagura = [{
+  ///////Pawn
+  "priority": 10,
+  "condition": function (R) {
+    var notPositioned = false;
+
+    if (this.piece == "P" && (this.column == 2 && this.row == 6 && this.player == "1" || this.column == 6 && this.row == 2 && this.player == "0")) {
+      notPositioned = true;
+    }
+
+    R.when(notPositioned && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+  },
+  "consequence": function (R) {
+    var new_position;
+
+    if (this.player == "0") {
+      new_position = "36";
+    } else {
+      new_position = "52";
+    }
+
+    var row = new_position.substr(0, 1);
+    var column = new_position.substr(1, 1);
+    this.priorities.push(10);
+    this.moves.push(row + column);
+    R.next();
+  }
+}, //////////////////////// 9
+{
+  ///////Silver
+  "priority": 9,
+  "condition": function (R) {
+    var notPositioned = false;
+
+    if (this.piece == "S" && (this.column == 2 && this.row == 8 && this.player == "1" || this.column == 6 && this.row == 0 && this.player == "0")) {
+      notPositioned = true;
+    }
+
+    R.when(notPositioned && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+  },
+  "consequence": function (R) {
+    //console.log("Rule activated: Yagura silver 1")
+    var new_position;
+
+    if (this.player == "0") {
+      new_position = "15";
+    } else {
+      new_position = "73";
+    }
+
+    var row = new_position.substr(0, 1);
+    var column = new_position.substr(1, 1);
+    this.priorities.push(9);
+    this.moves.push(row + column);
+    R.next();
+  }
+}, {
+  ///////Silver
+  "priority": 8,
+  "condition": function (R) {
+    //console.log("Rule: Yagura silver 2")
+    var notPositioned = false;
+
+    if (this.piece == "S" && (this.column == 3 && this.row == 7 && this.player == "1" || this.column == 5 && this.row == 1 && this.player == "0")) {
+      notPositioned = true;
+    }
+
+    R.when(notPositioned && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+  },
+  "consequence": function (R) {
+    //console.log("Rule activated: Yagura silver 2")
+    var new_position;
+
+    if (this.player == "0") {
+      new_position = "26";
+    } else {
+      new_position = "62";
+    }
+
+    var row = new_position.substr(0, 1);
+    var column = new_position.substr(1, 1);
+    this.priorities.push(9);
+    this.moves.push(row + column);
+    R.next();
+  }
+}, /////////////// if bishop exchange
+{
+  ///////Silver
+  "priority": 8,
+  "condition": function (R) {
+    //console.log("Rule: Yagura silver 2")
+    var notPositioned = false;
+    var sente_row = this.state.G.cells[1];
+    var gote_row = this.state.G.cells[7]; //console.log(sente_row[7])
+
+    if (this.piece == "S" && (this.column == 2 && this.row == 8 && this.player == "1" || this.column == 6 && this.row == 0 && this.player == "0") && (this.player == "0" && sente_row[7] == "1AB" || this.player == "1" && gote_row[1] == "0AB" || this.player == "0" && sente_row[7] == "1B" || this.player == "1" && gote_row[1] == "0B")) {
+      notPositioned = true;
+    }
+
+    R.when(notPositioned && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+  },
+  "consequence": function (R) {
+    //console.log("Rule activated: Yagura silver 2")
+    var new_position;
+
+    if (this.player == "0") {
+      new_position = "17";
+    } else {
+      new_position = "71";
+    }
+
+    var row = new_position.substr(0, 1);
+    var column = new_position.substr(1, 1);
+    this.priorities.push(9);
+    this.moves.push(row + column);
+    R.next();
+  }
+}, {
+  ///////Silver
+  "priority": 8,
+  "condition": function (R) {
+    //console.log("Rule: Yagura silver 2")
+    var notPositioned = false;
+
+    if (this.piece == "S" && (this.column == 1 && this.row == 7 && this.player == "1" || this.column == 7 && this.row == 1 && this.player == "0")) {
+      notPositioned = true;
+    }
+
+    R.when(notPositioned && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+  },
+  "consequence": function (R) {
+    //console.log("Rule activated: Yagura silver 2")
+    var new_position;
+
+    if (this.player == "0") {
+      new_position = "26";
+    } else {
+      new_position = "62";
+    }
+
+    var row = new_position.substr(0, 1);
+    var column = new_position.substr(1, 1);
+    this.priorities.push(9);
+    this.moves.push(row + column);
+    R.next();
+  }
+}, //////////////////////// 7
+{
+  ///////Pawn
+  "priority": 7,
+  "condition": function (R) {
+    var notPositioned = false;
+
+    if (this.piece == "P" && (this.column == 4 && this.row == 6 && this.player == "1" || this.column == 4 && this.row == 2 && this.player == "0")) {
+      notPositioned = true;
+    }
+
+    R.when(notPositioned && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+  },
+  "consequence": function (R) {
+    //console.log("Rule activated: Yagura pawn")
+    var new_position;
+
+    if (this.player == "0") {
+      new_position = "34";
+    } else {
+      new_position = "54";
+    }
+
+    var row = new_position.substr(0, 1);
+    var column = new_position.substr(1, 1);
+    this.priorities.push(7);
+    this.moves.push(row + column);
+    R.next();
+  }
+}, {
+  ///////Pawn
+  "priority": 7,
+  "condition": function (R) {
+    var notPositioned = false;
+
+    if (this.piece == "P" && (this.column == 3 && this.row == 6 && this.player == "1" || this.column == 5 && this.row == 2 && this.player == "0")) {
+      notPositioned = true;
+    }
+
+    R.when(notPositioned && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+  },
+  "consequence": function (R) {
+    //console.log("Rule activated: Yagura pawn")
+    var new_position;
+
+    if (this.player == "0") {
+      new_position = "35";
+    } else {
+      new_position = "53";
+    }
+
+    var row = new_position.substr(0, 1);
+    var column = new_position.substr(1, 1);
+    this.priorities.push(7);
+    this.moves.push(row + column);
+    R.next();
+  }
+}, {
+  ///////Golden
+  "priority": 6,
+  "condition": function (R) {
+    var notPositioned = false;
+
+    if (this.piece == "G" && (this.column == 5 && this.row == 8 && this.player == "1" || this.column == 3 && this.row == 0 && this.player == "0")) {
+      notPositioned = true;
+    }
+
+    R.when(notPositioned && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+  },
+  "consequence": function (R) {
+    //console.log("Rule activated: Yagura golden 1")
+    var new_position;
+
+    if (this.player == "0") {
+      new_position = "14";
+    } else {
+      new_position = "74";
+    }
+
+    var row = new_position.substr(0, 1);
+    var column = new_position.substr(1, 1);
+    this.priorities.push(7); //console.log(row+column)
+
+    this.moves.push(row + column);
+    R.next();
+  }
+}, {
+  ///////Golden
+  "priority": 4,
+  "condition": function (R) {
+    var notPositioned = false;
+
+    if (this.piece == "G" && (this.column == 3 && this.row == 8 && this.player == "1" || this.column == 5 && this.row == 0 && this.player == "0")) {
+      notPositioned = true;
+    }
+
+    R.when(notPositioned && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+  },
+  "consequence": function (R) {
+    //console.log("Rule activated: Yagura golden 2")
+    var new_position;
+
+    if (this.player == "0") {
+      new_position = "16";
+    } else {
+      new_position = "72";
+    }
+
+    var row = new_position.substr(0, 1);
+    var column = new_position.substr(1, 1);
+    this.priorities.push(7);
+    this.moves.push(row + column);
+    R.next();
+  }
+}, /////////////////////// 5
+{
+  ///////Bishop
+  "priority": 7,
+  "condition": function (R) {
+    var notPositioned = false;
+
+    if (this.piece == "B" && (this.column == 1 && this.row == 7 && this.player == "1" || this.column == 7 && this.row == 1 && this.player == "0")) {
+      notPositioned = true;
+    }
+
+    R.when(notPositioned && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+  },
+  "consequence": function (R) {
+    //console.log("Rule activated: Yagura pawn")
+    var new_position;
+
+    if (this.player == "0") {
+      new_position = "06";
+    } else {
+      new_position = "82";
+    }
+
+    var row = new_position.substr(0, 1);
+    var column = new_position.substr(1, 1);
+    this.priorities.push(5);
+    this.moves.push(row + column);
+    R.next();
+  }
+}, {
+  ///////Bishop
+  "priority": 7,
+  "condition": function (R) {
+    var notPositioned = false;
+    var sente_row = this.state.G.cells[1];
+    var gote_row = this.state.G.cells[7];
+
+    if (this.piece == "B" && (this.column == 2 && this.row == 8 && this.player == "1" || this.column == 6 && this.row == 0 && this.player == "0") && (this.player == "0" && sente_row[6] != null || this.player == "1" && gote_row[2] != null)) {
+      notPositioned = true;
+    }
+
+    R.when(notPositioned && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+  },
+  "consequence": function (R) {
+    //console.log("Rule activated: Yagura pawn")
+    var new_position;
+
+    if (this.player == "0") {
+      new_position = "15";
+    } else {
+      new_position = "73";
+    }
+
+    var row = new_position.substr(0, 1);
+    var column = new_position.substr(1, 1);
+    this.priorities.push(5);
+    this.moves.push(row + column);
+    R.next();
+  }
+}, {
+  ///////King
+  "priority": 6,
+  "condition": function (R) {
+    var notPositioned = false;
+    var sente_row = this.state.G.cells[0];
+    var gote_row = this.state.G.cells[8];
+
+    if (this.piece == "KING" && (this.column == 4 && this.row == 8 && this.player == "1" || this.column == 4 && this.row == 0 && this.player == "0") && !(this.player == "0" && sente_row[5] != null || this.player == "1" && gote_row[3] != null)) {
+      notPositioned = true;
+    }
+
+    R.when(notPositioned && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+  },
+  "consequence": function (R) {
+    //console.log("Rule activated: Yagura pawn")
+    var new_position;
+
+    if (this.player == "0") {
+      new_position = "05";
+    } else {
+      new_position = "83";
+    }
+
+    var row = new_position.substr(0, 1);
+    var column = new_position.substr(1, 1);
+    this.priorities.push(5);
+    this.moves.push(row + column);
+    R.next();
+  }
+}, {
+  ///////Golden
+  "priority": 6,
+  "condition": function (R) {
+    var notPositioned = false;
+
+    if (this.piece == "G" && (this.column == 4 && this.row == 7 && this.player == "1" || this.column == 4 && this.row == 1 && this.player == "0")) {
+      notPositioned = true;
+    }
+
+    R.when(notPositioned && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+  },
+  "consequence": function (R) {
+    //console.log("Rule activated: Yagura pawn")
+    var new_position;
+
+    if (this.player == "0") {
+      new_position = "25";
+    } else {
+      new_position = "63";
+    }
+
+    var row = new_position.substr(0, 1);
+    var column = new_position.substr(1, 1);
+    this.priorities.push(5);
+    this.moves.push(row + column);
+    R.next();
+  }
+}, {
+  ///////King
+  "priority": 5,
+  "condition": function (R) {
+    var notPositioned = false;
+    var sente_row = this.state.G.cells[1];
+    var gote_row = this.state.G.cells[7];
+
+    if (this.piece == "KING" && (this.column == 3 && this.row == 8 && this.player == "1" || this.column == 5 && this.row == 0 && this.player == "0") && !(this.player == "0" && sente_row[6] != null || this.player == "1" && gote_row[2] != null)) {
+      notPositioned = true;
+    }
+
+    R.when(notPositioned && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+  },
+  "consequence": function (R) {
+    //console.log("Rule activated: Yagura pawn")
+    var new_position;
+
+    if (this.player == "0") {
+      new_position = "16";
+    } else {
+      new_position = "72";
+    }
+
+    var row = new_position.substr(0, 1);
+    var column = new_position.substr(1, 1);
+    this.priorities.push(5);
+    this.moves.push(row + column);
+    R.next();
+  }
+}, {
+  ///////King
+  "priority": 5,
+  "condition": function (R) {
+    var notPositioned = false;
+    var sente_row = this.state.G.cells[1];
+    var gote_row = this.state.G.cells[7];
+    var sente_row_bishop = this.state.G.cells[0];
+    var gote_row_bishop = this.state.G.cells[8];
+
+    if (this.piece == "KING" && (this.column == 3 && this.row == 8 && this.player == "1" || this.column == 5 && this.row == 0 && this.player == "0") && (this.player == "0" && sente_row[6] != null || this.player == "1" && gote_row[2] != null) && !(this.player == "0" && sente_row[7] != null || this.player == "1" && gote_row[1] != null)) {
+      notPositioned = true;
+    }
+
+    R.when(notPositioned && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+  },
+  "consequence": function (R) {
+    //console.log("Rule activated: Yagura pawn")
+    var new_position;
+
+    if (this.player == "0") {
+      new_position = "06";
+    } else {
+      new_position = "82";
+    }
+
+    var row = new_position.substr(0, 1);
+    var column = new_position.substr(1, 1);
+    this.priorities.push(5);
+    this.moves.push(row + column);
+    R.next();
+  }
+}, {
+  ///////King
+  "priority": 5,
+  "condition": function (R) {
+    var notPositioned = false;
+
+    if (this.piece == "KING" && (this.column == 2 && this.row == 7 && this.player == "1" || this.column == 6 && this.row == 1 && this.player == "0")) {
+      notPositioned = true;
+    }
+
+    R.when(notPositioned && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+  },
+  "consequence": function (R) {
+    //console.log("Rule activated: Yagura pawn")
+    var new_position;
+
+    if (this.player == "0") {
+      new_position = "17";
+    } else {
+      new_position = "71";
+    }
+
+    var row = new_position.substr(0, 1);
+    var column = new_position.substr(1, 1);
+    this.priorities.push(5);
+    this.moves.push(row + column);
+    R.next();
+  }
+}, {
+  ///////King
+  "priority": 5,
+  "condition": function (R) {
+    var notPositioned = false;
+
+    if (this.piece == "KING" && (this.column == 2 && this.row == 8 && this.player == "1" || this.column == 6 && this.row == 0 && this.player == "0")) {
+      notPositioned = true;
+    }
+
+    R.when(notPositioned && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+  },
+  "consequence": function (R) {
+    //console.log("Rule activated: Yagura pawn")
+    var new_position;
+
+    if (this.player == "0") {
+      new_position = "17";
+    } else {
+      new_position = "71";
+    }
+
+    var row = new_position.substr(0, 1);
+    var column = new_position.substr(1, 1);
+    this.priorities.push(5);
+    this.moves.push(row + column);
+    R.next();
+  }
+}];
+module.exports = {
+  Yagura
+};
+},{"../../Game.js":"src/Game.js"}],"src/rules/Castles/Boat.js":[function(require,module,exports) {
+var Boat = [//////////////10
+{
+  ///////Pawn
+  "priority": 10,
+  "condition": function (R) {
+    var notPositioned = false;
+
+    if (this.piece == "P" && (this.column == 2 && this.row == 6 && this.player == "1" || this.column == 6 && this.row == 2 && this.player == "0")) {
+      notPositioned = true;
+    }
+
+    R.when(notPositioned && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+  },
+  "consequence": function (R) {
+    var new_position;
+
+    if (this.player == "0") {
+      new_position = "36";
+    } else {
+      new_position = "52";
+    }
+
+    var row = new_position.substr(0, 1);
+    var column = new_position.substr(1, 1);
+    this.priorities.push(10);
+    this.moves.push(row + column);
+    R.next();
+  }
+}, /////////////9
+{
+  ///////King
+  "priority": 9,
+  "condition": function (R) {
+    var notPositioned = false;
+
+    if (this.piece == "KING" && (this.column == 4 && this.row == 8 && this.player == "1" || this.column == 4 && this.row == 0 && this.player == "0")) {
+      notPositioned = true;
+    }
+
+    R.when(notPositioned && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+  },
+  "consequence": function (R) {
+    //console.log("Rule activated: Yagura pawn")
+    var new_position;
+
+    if (this.player == "0") {
+      new_position = "15";
+    } else {
+      new_position = "73";
+    }
+
+    var row = new_position.substr(0, 1);
+    var column = new_position.substr(1, 1);
+    this.priorities.push(9);
+    this.moves.push(row + column);
+    R.next();
+  }
+}, {
+  ///////King
+  "priority": 9,
+  "condition": function (R) {
+    var notPositioned = false;
+
+    if (this.piece == "KING" && (this.column == 3 && this.row == 7 && this.player == "1" || this.column == 5 && this.row == 1 && this.player == "0")) {
+      notPositioned = true;
+    }
+
+    R.when(notPositioned && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+  },
+  "consequence": function (R) {
+    //console.log("Rule activated: Yagura pawn")
+    var new_position;
+
+    if (this.player == "0") {
+      new_position = "16";
+    } else {
+      new_position = "72";
+    }
+
+    var row = new_position.substr(0, 1);
+    var column = new_position.substr(1, 1);
+    this.priorities.push(9);
+    this.moves.push(row + column);
+    R.next();
+  }
+}, //////////////8
+{
+  ///////Golden
+  "priority": 8,
+  "condition": function (R) {
+    var notPositioned = false;
+
+    if (this.piece == "G" && (this.column == 5 && this.row == 8 && this.player == "1" || this.column == 3 && this.row == 0 && this.player == "0")) {
+      notPositioned = true;
+    }
+
+    R.when(notPositioned && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+  },
+  "consequence": function (R) {
+    //console.log("Rule activated: Yagura golden 1")
+    var new_position;
+
+    if (this.player == "0") {
+      new_position = "14";
+    } else {
+      new_position = "74";
+    }
+
+    var row = new_position.substr(0, 1);
+    var column = new_position.substr(1, 1);
+    this.priorities.push(8); //console.log(row+column)
+
+    this.moves.push(row + column);
+    R.next();
+  }
+}, {
+  ///////Pawn
+  "priority": 8,
+  "condition": function (R) {
+    var notPositioned = false;
+
+    if (this.piece == "P" && (this.column == 4 && this.row == 6 && this.player == "1" || this.column == 4 && this.row == 2 && this.player == "0")) {
+      notPositioned = true;
+    }
+
+    R.when(notPositioned && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+  },
+  "consequence": function (R) {
+    //console.log("Rule activated: Yagura pawn")
+    var new_position;
+
+    if (this.player == "0") {
+      new_position = "34";
+    } else {
+      new_position = "54";
+    }
+
+    var row = new_position.substr(0, 1);
+    var column = new_position.substr(1, 1);
+    this.priorities.push(8);
+    this.moves.push(row + column);
+    R.next();
+  }
+}, {
+  ///////Pawn
+  "priority": 8,
+  "condition": function (R) {
+    var notPositioned = false;
+
+    if (this.piece == "P" && (this.column == 0 && this.row == 6 && this.player == "1" || this.column == 8 && this.row == 2 && this.player == "0")) {
+      notPositioned = true;
+    }
+
+    R.when(notPositioned && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+  },
+  "consequence": function (R) {
+    //console.log("Rule activated: Yagura pawn")
+    var new_position;
+
+    if (this.player == "0") {
+      new_position = "38";
+    } else {
+      new_position = "50";
+    }
+
+    var row = new_position.substr(0, 1);
+    var column = new_position.substr(1, 1);
+    this.priorities.push(8);
+    this.moves.push(row + column);
+    R.next();
+  }
+}];
+module.exports = {
+  Boat
+};
+},{}],"src/rules/Castles/Mino.js":[function(require,module,exports) {
+var Mino = [////////////// 10
+{
+  ///////Pawn
+  "priority": 10,
+  "condition": function (R) {
+    var notPositioned = false;
+
+    if (this.piece == "P" && (this.column == 3 && this.row == 6 && this.player == "1" || this.column == 5 && this.row == 2 && this.player == "0")) {
+      notPositioned = true;
+    }
+
+    R.when(notPositioned && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+  },
+  "consequence": function (R) {
+    var new_position;
+
+    if (this.player == "0") {
+      new_position = "35";
+    } else {
+      new_position = "53";
+    }
+
+    var row = new_position.substr(0, 1);
+    var column = new_position.substr(1, 1);
+    this.priorities.push(10);
+    this.moves.push(row + column);
+    R.next();
+  }
+}, ////////////// 9
+{
+  ///////Pawn
+  "priority": 9,
+  "condition": function (R) {
+    var notPositioned = false;
+
+    if (this.piece == "P" && (this.column == 2 && this.row == 6 && this.player == "1" || this.column == 6 && this.row == 2 && this.player == "0")) {
+      notPositioned = true;
+    }
+
+    R.when(notPositioned && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+  },
+  "consequence": function (R) {
+    var new_position;
+
+    if (this.player == "0") {
+      new_position = "36";
+    } else {
+      new_position = "52";
+    }
+
+    var row = new_position.substr(0, 1);
+    var column = new_position.substr(1, 1);
+    this.priorities.push(9);
+    this.moves.push(row + column);
+    R.next();
+  }
+}, {
+  ///////Bishop
+  "priority": 9,
+  "condition": function (R) {
+    var notPositioned = false;
+
+    if (this.piece == "B" && (this.column == 1 && this.row == 7 && this.player == "1" || this.column == 7 && this.row == 1 && this.player == "0")) {
+      notPositioned = true;
+    }
+
+    R.when(notPositioned && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+  },
+  "consequence": function (R) {
+    //console.log("Rule activated: Yagura pawn")
+    var new_position;
+
+    if (this.player == "0") {
+      new_position = "26";
+    } else {
+      new_position = "62";
+    }
+
+    var row = new_position.substr(0, 1);
+    var column = new_position.substr(1, 1);
+    this.priorities.push(9);
+    this.moves.push(row + column);
+    R.next();
+  }
+}, ///////////////////////// 8 
+{
+  ///////Silver
+  "priority": 8,
+  "condition": function (R) {
+    var notPositioned = false;
+
+    if (this.piece == "S" && (this.column == 2 && this.row == 8 && this.player == "1" || this.column == 6 && this.row == 0 && this.player == "0")) {
+      notPositioned = true;
+    }
+
+    R.when(notPositioned && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+  },
+  "consequence": function (R) {
+    //console.log("Rule activated: Yagura silver 1")
+    var new_position;
+
+    if (this.player == "0") {
+      new_position = "16";
+    } else {
+      new_position = "72";
+    }
+
+    var row = new_position.substr(0, 1);
+    var column = new_position.substr(1, 1);
+    this.priorities.push(8);
+    this.moves.push(row + column);
+    R.next();
+  }
+}, {
+  ///////King
+  "priority": 8,
+  "condition": function (R) {
+    var notPositioned = false;
+
+    if (this.piece == "KING" && (this.column == 4 && this.row == 8 && this.player == "1" || this.column == 4 && this.row == 0 && this.player == "0")) {
+      notPositioned = true;
+    }
+
+    R.when(notPositioned && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+  },
+  "consequence": function (R) {
+    //console.log("Rule activated: Yagura pawn")
+    var new_position;
+
+    if (this.player == "0") {
+      new_position = "13";
+    } else {
+      new_position = "75";
+    }
+
+    var row = new_position.substr(0, 1);
+    var column = new_position.substr(1, 1);
+    this.priorities.push(8);
+    this.moves.push(row + column);
+    R.next();
+  }
+}, {
+  ///////King
+  "priority": 8,
+  "condition": function (R) {
+    var notPositioned = false;
+
+    if (this.piece == "KING" && (this.column == 5 && this.row == 7 && this.player == "1" || this.column == 3 && this.row == 1 && this.player == "0")) {
+      notPositioned = true;
+    }
+
+    R.when(notPositioned && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+  },
+  "consequence": function (R) {
+    //console.log("Rule activated: Yagura pawn")
+    var new_position;
+
+    if (this.player == "0") {
+      new_position = "12";
+    } else {
+      new_position = "76";
+    }
+
+    var row = new_position.substr(0, 1);
+    var column = new_position.substr(1, 1);
+    this.priorities.push(8);
+    this.moves.push(row + column);
+    R.next();
+  }
+}, {
+  ///////King
+  "priority": 8,
+  "condition": function (R) {
+    var notPositioned = false;
+
+    if (this.piece == "KING" && (this.column == 6 && this.row == 7 && this.player == "1" || this.column == 2 && this.row == 1 && this.player == "0")) {
+      notPositioned = true;
+    }
+
+    R.when(notPositioned && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+  },
+  "consequence": function (R) {
+    //console.log("Rule activated: Yagura pawn")
+    var new_position;
+
+    if (this.player == "0") {
+      new_position = "11";
+    } else {
+      new_position = "77";
+    }
+
+    var row = new_position.substr(0, 1);
+    var column = new_position.substr(1, 1);
+    this.priorities.push(8);
+    this.moves.push(row + column);
+    R.next();
+  }
+}, ///////////////////// 7 
+{
+  ///////Silver
+  "priority": 7,
+  "condition": function (R) {
+    var notPositioned = false;
+
+    if (this.piece == "S" && (this.column == 6 && this.row == 8 && this.player == "1" || this.column == 2 && this.row == 0 && this.player == "0")) {
+      notPositioned = true;
+    }
+
+    R.when(notPositioned && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+  },
+  "consequence": function (R) {
+    //console.log("Rule activated: Yagura pawn")
+    var new_position;
+
+    if (this.player == "0") {
+      new_position = "12";
+    } else {
+      new_position = "76";
+    }
+
+    var row = new_position.substr(0, 1);
+    var column = new_position.substr(1, 1);
+    this.priorities.push(7);
+    this.moves.push(row + column);
+    R.next();
+  }
+}, {
+  ///////Golden
+  "priority": 7,
+  "condition": function (R) {
+    var notPositioned = false;
+
+    if (this.piece == "G" && (this.column == 3 && this.row == 8 && this.player == "1" || this.column == 5 && this.row == 0 && this.player == "0")) {
+      notPositioned = true;
+    }
+
+    R.when(notPositioned && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+  },
+  "consequence": function (R) {
+    //console.log("Rule activated: Yagura pawn")
+    var new_position;
+
+    if (this.player == "0") {
+      new_position = "14";
+    } else {
+      new_position = "74";
+    }
+
+    var row = new_position.substr(0, 1);
+    var column = new_position.substr(1, 1);
+    this.priorities.push(7);
+    this.moves.push(row + column);
+    R.next();
+  }
+}];
+module.exports = {
+  Mino
+};
+},{}],"src/rules/BasicRules.js":[function(require,module,exports) {
+"use strict";
+
+var _Game = require("../Game.js");
+
+var BasicRules = [{
   ///////moveRandom
-  "priority": 1,
+  "priority": 5,
   "condition": function (R) {
     //console.log("Rule: moveRandom")
-    //console.log("player: " + this.player + this.state.ctx.currentPlayer)
     R.when(this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
   },
   "consequence": function (R) {
-    //console.log("Rule activated: playBoard")
+    //console.log("Rule activated: moveRandom")
     //var state = require('./ShogiRBS.js')
     //var G = state.G
     var rand = parseInt(Math.random() * (this.possibleMoves.length - 0) + 0);
     var new_position = this.possibleMoves[rand];
     var row = new_position.substr(0, 1);
     var column = new_position.substr(1, 1); //this.result = true;
+    // this.priorities.push(0)
+    // this.moves.push(row+column)  
+    //console.log(this);
 
-    this.reason = this.row + this.column + row + column + this.piece;
-    this.move = row + column; //console.log(this);
+    R.next();
+  }
+}, {
+  ///////Capture
+  "priority": 5,
+  "condition": function (R) {
+    //console.log("Rule: Capture")
+    //console.log("player: " + this.player + this.state.ctx.currentPlayer)
+    var threats;
 
-    R.stop();
+    if (this.player == this.state.ctx.currentPlayer) {
+      threats = getThreats(this.state.G, this.possibleMoves, this.state.ctx.currentPlayer, this);
+    } //console.log(threads)
+
+
+    R.when(this.player == this.state.ctx.currentPlayer && this.isHand == "0" && threats != "");
+  },
+  "consequence": function (R) {
+    //console.log("Rule activated: Capture")
+    //var state = require('./ShogiRBS.js')
+    //var G = state.G
+    let threats = getThreats(this.state.G, this.possibleMoves, this.state.ctx.currentPlayer);
+    var rand = parseInt(Math.random() * (threats.length - 0) + 0);
+    var thread = threats[rand];
+    var row = thread[1].substr(0, 1);
+    var column = thread[2].substr(0, 1); //console.log(thread)
+    //console.log(row)
+    //console.log(column)
+
+    this.priorities.push(0);
+    this.moves.push(row + column); //console.log(this);
+
+    R.next();
+  }
+}, {
+  ///////Check
+  "priority": 5,
+  "condition": function (R) {
+    //console.log("Rule: Capture")
+    var check_moves;
+
+    if (this.player == this.state.ctx.currentPlayer) {
+      check_moves = doesCheck(this.state.G, this.state.ctx, this.row, this.column, this.piece, this.possibleMoves, this.player);
+    }
+
+    R.when(this.player == this.state.ctx.currentPlayer && check_moves != "");
+  },
+  "consequence": function (R) {
+    //console.log("Rule activated: Check")
+    let check_moves = doesCheck(this.state.G, this.state.ctx, this.row, this.column, this.piece, this.possibleMoves, this.player);
+    var rand = parseInt(Math.random() * (check_moves.length - 0) + 0);
+    var mov = check_moves[rand];
+    var row = mov[0].substr(0, 1);
+    var column = mov[1].substr(0, 1); //console.log(check_moves)
+
+    this.priorities.push(3);
+    this.moves.push(row + column);
+    R.next();
+  }
+}, {
+  ///////Check Mate
+  "priority": 5,
+  "condition": function (R) {
+    //console.log("Rule: Capture")
+    var check_moves;
+    var mate_moves;
+
+    if (this.player == this.state.ctx.currentPlayer) {
+      check_moves = doesCheck(this.state.G, this.state.ctx, this.row, this.column, this.piece, this.possibleMoves, this.player);
+
+      if (check_moves != "") {
+        mate_moves = doesMate(this.state.G, this.state.ctx, this.row, this.column, this.piece, this.possibleMoves, this.player);
+      }
+    }
+
+    R.when(this.player == this.state.ctx.currentPlayer && check_moves != "" && mate_moves != "");
+  },
+  "consequence": function (R) {
+    //console.log("Rule activated: Check Mate")
+    var mate_moves = doesMate(this.state.G, this.state.ctx, this.row, this.column, this.piece, this.possibleMoves, this.player);
+    var rand = parseInt(Math.random() * (mate_moves.length - 0) + 0);
+    var mov = mate_moves[rand];
+    var row = mov[0].substr(0, 1);
+    var column = mov[1].substr(0, 1); //console.log(mate_moves)
+
+    this.priorities.push(10000000000000000000000000);
+    this.moves.push(row + column);
+    R.next();
+  }
+}, {
+  ///////Fork
+  "priority": 5,
+  "condition": function (R) {
+    var forkMoves;
+
+    if (this.player == this.state.ctx.currentPlayer) {
+      forkMoves = doesFork(this.state, this.possibleMoves, this);
+    } //console.log(threads)
+
+
+    R.when(this.player == this.state.ctx.currentPlayer && forkMoves != "");
+  },
+  "consequence": function (R) {
+    //console.log("Rule activated: Fork")
+    let forkMoves = doesFork(this.state, this.possibleMoves, this);
+
+    for (let mv of forkMoves) {
+      var row = mv.substr(0, 1);
+      var column = mv.substr(1, 1); //console.log(row+column)
+
+      this.moves.push(row + column);
+      this.priorities.push(5);
+    }
+
+    R.next();
+  }
+},
+/* {///////Defend
+     "priority": 5,
+     "condition": function(R) {
+         var forkMoves	
+         if(this.player==this.state.ctx.currentPlayer){
+             forkMoves = doesFork(this.state,this.possibleMoves,this)
+         }
+         //console.log(threads)
+         R.when(
+             this.player==this.state.ctx.currentPlayer 
+             && forkMoves!="" 
+             );
+     },
+     "consequence": function(R) {
+         console.log("Rule activated: Fork")
+         let forkMoves = doesFork(this.state,this.possibleMoves,this)
+         for(let mv of forkMoves){
+             var row = mv.substr(0,1)
+             var column = mv.substr(1,1)
+             console.log(row+column)
+             this.moves.push(row+column)
+             this.priorities.push(5)
+         }
+         R.next();
+     }
+ },*/
+{
+  ///////Scape
+  "priority": 5,
+  "condition": function (R) {
+    var threatened = false;
+
+    if (this.player == this.state.ctx.currentPlayer) {
+      threatened = isThreatened(this.state, this.player, this.row, this.column);
+    }
+
+    R.when(this.player == this.state.ctx.currentPlayer && threatened && this.possibleMoves != "");
+  },
+  "consequence": function (R) {
+    //console.log("Rule activated: Scape")
+    var factRow = parseInt(this.row);
+    var factColumn = parseInt(this.column);
+    var threatened = true;
+
+    for (let move of this.possibleMoves) {
+      var newState = JSON.parse(JSON.stringify(this.state));
+      newState.G = (0, _Game.movePiece)(newState.G, newState.ctx, factRow, factColumn, parseInt(move.substr(0, 1)), parseInt(move.substr(1, 1)), this.piece);
+
+      if (newState.G != "INVALID_MOVE") {
+        //console.log(newState)
+        threatened = isThreatened(newState, this.player, move.substr(0, 1), move.substr(1, 1));
+
+        if (!threatened) {
+          var row = move.substr(0, 1);
+          var column = move.substr(1, 1); //console.log(row+column)
+
+          this.moves.push(row + column);
+          this.priorities.push(this.value);
+        }
+      }
+    }
+
+    R.next();
+  }
+}, {
+  ///////Attack
+  "priority": 5,
+  "condition": function (R) {
+    var moves;
+
+    if (this.player == this.state.ctx.currentPlayer) {
+      moves = canAttack(this.state, this.possibleMoves, this);
+    }
+
+    R.when(this.player == this.state.ctx.currentPlayer && moves != null && this.possibleMoves != "");
+  },
+  "consequence": function (R) {
+    //console.log("Rule activated: Attack")
+    //console.log(this)
+    let moves = canAttack(this.state, this.possibleMoves, this);
+
+    for (let mv of moves) {
+      var row = mv.substr(0, 1);
+      var column = mv.substr(1, 1); //console.log(row+column)
+
+      this.moves.push(row + column);
+      this.priorities.push(1);
+    }
+
+    R.next();
   }
 }];
 module.exports = {
-  RangingRookRules
+  BasicRules
 };
-},{}],"src/ShogiAI.js":[function(require,module,exports) {
+
+function getThreats(G, possibleMoves, player, fact) {
+  let threats = [];
+  var row;
+  var column;
+  var G_row;
+  var count = 0;
+
+  for (let cell of possibleMoves) {
+    row = cell.substr(0, 1);
+    column = cell.substr(1, 1);
+    G_row = G.cells[row];
+
+    if (G_row[column] != null && G_row[column].substr(0, 1) != player.toString()) {
+      var thread = [G_row[column], row, column];
+      threats[count] = thread;
+      count = count + 1;
+    }
+  }
+
+  for (let th of threats) {//console.log("threat: ")
+    //console.log(th)
+    //console.log(fact)
+    //console.log(G)
+    //console.log(possibleMoves)
+  }
+
+  return threats;
+}
+
+function doesCheck(G, ctx, row, column, piece, possibleMoves, player) {
+  let newG;
+  let check_cells = [];
+  var mov = [];
+
+  for (let cell of possibleMoves) {
+    newG = JSON.parse(JSON.stringify(G));
+    var row = newG.cells[cell.substr(0, 1)];
+    row[cell.substr(1, 1)] = player.concat(piece);
+    newG.cells[cell.substr(0, 1)] = row;
+
+    if ((0, _Game.isCheck)(newG, player)) {
+      mov = [cell.substr(0, 1), cell.substr(1, 1)];
+      check_cells.push(mov);
+    }
+  }
+
+  return check_cells;
+}
+
+function doesMate(G, ctx, row, column, piece, possibleMoves, player) {
+  let newG;
+  let check_cells = [];
+  var mov = [];
+
+  for (let cell of possibleMoves) {
+    newG = JSON.parse(JSON.stringify(G));
+    var row = newG.cells[cell.substr(0, 1)];
+    row[cell.substr(1, 1)] = player.concat(piece);
+    newG.cells[cell.substr(0, 1)] = row;
+
+    if ((0, _Game.isCheckMate)(newG, ctx)) {
+      mov = [cell.substr(0, 1), cell.substr(1, 1)];
+      check_cells.push(mov);
+    }
+  }
+
+  return check_cells;
+}
+
+function doesFork(state, possibleMoves, fact) {
+  var threats;
+  var newPossibleMoves;
+  var forkMoves = [];
+  var factRow = parseInt(fact.row);
+  var factColumn = parseInt(fact.column); //console.log(fact)
+
+  if (fact.isHand == "0") {
+    for (let move of possibleMoves) {
+      var newState = JSON.parse(JSON.stringify(state));
+      newState.G = (0, _Game.movePiece)(newState.G, newState.ctx, factRow, factColumn, parseInt(move.substr(0, 1)), parseInt(move.substr(1, 1)), fact.piece);
+
+      if (newState.G != "INVALID_MOVE") {
+        newPossibleMoves = (0, _Game.getPossibleCells)(newState.G.cells, parseInt(move.substr(0, 1)), parseInt(move.substr(1, 1)), fact.piece, fact.player);
+        threats = getThreats(newState.G, newPossibleMoves, fact.player, fact);
+
+        if (threats.length > 1) {
+          forkMoves.push(move);
+        }
+      }
+    }
+  } else {
+    for (let move of possibleMoves) {
+      var newState = JSON.parse(JSON.stringify(state));
+      newState.G = (0, _Game.revivePiece)(newState.G, newState.ctx, move.substr(0, 1), move.substr(1, 1), fact.player.concat(fact.piece));
+
+      if (newState.G != "INVALID_MOVE") {
+        newPossibleMoves = (0, _Game.getPossibleCells)(newState.G.cells, parseInt(move.substr(0, 1)), parseInt(move.substr(1, 1)), fact.piece, fact.player);
+        threats = getThreats(newState.G, newPossibleMoves, fact.player, fact);
+
+        if (threats.length > 1) {
+          forkMoves.push(move);
+        }
+      }
+    }
+  }
+
+  return forkMoves;
+}
+
+function isThreatened(state, player, prow, pcolumn) {
+  var cells = state.G.cells;
+  var row = -1;
+  var column = -1;
+  var scape_moves = [];
+  var threatened = false;
+
+  for (let cell of cells) {
+    row = row + 1;
+    column = -1;
+
+    for (let c of cell) {
+      column = column + 1;
+
+      if (c != null && c.substr(0, 1) != player) {
+        var op_moves = (0, _Game.getPossibleCells)(state.G.cells, row, column, c.substr(1, 4), c.substr(0, 1)); //string
+
+        if (op_moves.includes(prow.concat(pcolumn))) {
+          //console.log("THREATNEED")
+          threatened = true;
+          break;
+        }
+      }
+    }
+  }
+
+  return threatened;
+}
+
+function canAttack(state, possibleMoves, fact) {
+  var threats = null;
+  var newPossibleMoves;
+  var attackMoves = [];
+  var factRow = parseInt(fact.row);
+  var factColumn = parseInt(fact.column); //console.log(fact)
+
+  if (fact.isHand == "0") {
+    for (let move of possibleMoves) {
+      threats = null;
+      var newState = JSON.parse(JSON.stringify(state));
+      newState.G = (0, _Game.movePiece)(newState.G, newState.ctx, factRow, factColumn, parseInt(move.substr(0, 1)), parseInt(move.substr(1, 1)), fact.piece);
+
+      if (newState.G != "INVALID_MOVE") {
+        newPossibleMoves = (0, _Game.getPossibleCells)(newState.G.cells, parseInt(move.substr(0, 1)), parseInt(move.substr(1, 1)), fact.piece, fact.player);
+        threats = getThreats(newState.G, newPossibleMoves, fact.player, fact);
+
+        if (threats != "") {
+          attackMoves.push(move);
+        }
+      }
+    }
+  } else {
+    for (let move of possibleMoves) {
+      threats = null;
+      var newState = JSON.parse(JSON.stringify(state));
+      newState.G = (0, _Game.revivePiece)(newState.G, newState.ctx, move.substr(0, 1), move.substr(1, 1), fact.player.concat(fact.piece));
+
+      if (newState.G != "INVALID_MOVE") {
+        newPossibleMoves = (0, _Game.getPossibleCells)(newState.G.cells, parseInt(move.substr(0, 1)), parseInt(move.substr(1, 1)), fact.piece, fact.player);
+        threats = getThreats(newState.G, newPossibleMoves, fact.player, fact);
+
+        if (threats != "") {
+          attackMoves.push(move);
+        }
+      }
+    }
+  }
+
+  return attackMoves;
+}
+},{"../Game.js":"src/Game.js"}],"src/ShogiAI.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -26344,13 +27749,23 @@ var _StrategyRBS = require("./StrategyRBS.js");
 
 var _Game = require("./Game.js");
 
+var player;
 var currentPlayer;
-var depth = 4;
+var rivalPlayer;
+var depth = 2;
 
 async function requestMoveAI(event) {
   var client = event.currentTarget.parameter;
   var state = client.getState();
-  currentPlayer = state.ctx.currentPlayer; /////Get rules -> Strategy//////
+  player = state.ctx.currentPlayer;
+  currentPlayer = player;
+
+  if (player == "0") {
+    rivalPlayer = "1";
+  } else {
+    rivalPlayer = "0";
+  } /////Get rules -> Strategy//////
+
 
   var getRuleSet = function func() {
     return new Promise((resolve, reject) => {
@@ -26361,11 +27776,7 @@ async function requestMoveAI(event) {
   };
 
   let ruleSet = await getRuleSet();
-  console.log("Rules: ");
-  console.log(ruleSet); //////////Get rules//////
-
-  var rules = getAllRules(ruleSet); ////Best move//////
-  ////////////console.log("Primer nodo => ") 
+  var rules = getAllRules(ruleSet); /////////////// Primer nodo => 
 
   var first_node_promise = function func() {
     return new Promise((resolve, reject) => {
@@ -26376,9 +27787,6 @@ async function requestMoveAI(event) {
   };
 
   let moves = await first_node_promise();
-  moves.splice(2); //console.log("Moves: ") 
-  //console.log(moves) 
-
   var count = 0;
 
   var minmax_promise = function func() {
@@ -26389,8 +27797,7 @@ async function requestMoveAI(event) {
     });
   };
 
-  var bestmove = await minmax_promise(); //console.log(bestmove)
-
+  var bestmove = await minmax_promise();
   let row_id = parseInt(bestmove[0]);
   let column_id = parseInt(bestmove[1]);
   let row_target = parseInt(bestmove[2].substr(0, 1));
@@ -26405,54 +27812,19 @@ async function requestMoveAI(event) {
   }
 }
 
-async function getMovesKBS(state, rules, fn) {
-  //console.log("SBC cells: ");
-  //console.log(state.G.cells);
-  let resultKBS = () => {
-    return new Promise((resolve, reject) => {
-      (0, _GameRBS.executeEngine)(state, rules, function (result) {
-        resolve(result);
-      });
-    });
-  };
-
-  let moves = await resultKBS();
-  console.log("Resultado del SBC: ");
-  console.log(moves); //console.log(state.G.cells)
-
-  fn(moves);
-}
-
-async function getBestMove(moves, state, node_depth, count, fn) {
-  //console.log("////////MinMax////////")
-  //////////////////////console.log("Nodo: " + node_depth+" "+count) 
-  //const {parse, stringify} = require('flatted/cjs');
-  //console.log()
-  //console.log( state.G.cells)
+async function getBestMove(moves, state, node_depth, last_move, fn) {
   var possibleScores = [];
   var possibleMoves = []; //////////////////////CHANGE PLAYER////////////////////////
-  /////////////////////////console.log("Jugador: " + state.ctx.currentPlayer + currentPlayer)
 
-  let player = state.ctx.currentPlayer;
-
-  if (player == "0") {
-    player = "1";
+  if (node_depth % 2 == "0") {
+    player = rivalPlayer;
   } else {
-    player = "0";
-  } //console.log("Player now: " + player)
-  ////////////////CREATE STATES//////////////////////////////
+    player = currentPlayer;
+  } ////////////////CREATE STATES//////////////////////////////
 
 
   var possibleStates = moves.map(function (el) {
-    //console.log("Hijo " + count + " : ") 
-    //count = count + 1
-    //console.log(state.G.cells)
-    const new_state = JSON.parse(JSON.stringify(state)); //console.log(new_state.G.cells)
-    //console.log(el)
-    //console.log(new_state.ctx.currentPlayer)
-    //console.log(new_state.G.cells)
-
-    possibleMoves.push(el);
+    const new_state = JSON.parse(JSON.stringify(state));
     let row_id = parseInt(el[0]);
     let column_id = parseInt(el[1]);
     let row_target = parseInt(el[2].substr(0, 1));
@@ -26463,33 +27835,69 @@ async function getBestMove(moves, state, node_depth, count, fn) {
     if (isHand != 1) {
       new_state.G = (0, _Game.movePiece)(new_state.G, new_state.ctx, row_id, column_id, row_target, column_target, piece);
     } else {
-      new_state.G = (0, _Game.revivePiece)(new_state.G, new_state.ctx, row_target, column_target, state.ctx.currentPlayer.concat(piece));
+      ////////OJO ESTO DE PLAYER///////////
+      new_state.G = (0, _Game.revivePiece)(new_state.G, new_state.ctx, row_target, column_target, new_state.ctx.currentPlayer.concat(piece));
     }
 
-    possibleScores.push(getHeuristic(new_state));
-    new_state.ctx.currentPlayer = player;
-    return new_state;
-  }); ///////////////////////////////////////console.log("Todos los hijos de : "+ node_depth + " "+count)
-  ///////////////////////////////////////////console.log(possibleStates);
-  //console.log("Possible Scores: ")
+    if (new_state.G == "INVALID_MOVE") {} else {
+      ///////heursiticis////////
+      possibleMoves.push(el);
+
+      if (node_depth == 0) {
+        new_state.player_priority = 0;
+        new_state.rival_priority = 0;
+      }
+
+      if (new_state.ctx.currentPlayer == currentPlayer) {
+        new_state.player_priority = new_state.player_priority + parseInt(el[5]);
+      } else {
+        new_state.rival_priority = new_state.rival_priority + parseInt(el[5]);
+      }
+
+      var heuris = getHeuristic(new_state, node_depth);
+      possibleScores.push(heuris); //console.log("Heuristic: " + heuris)
+
+      new_state.ctx.currentPlayer = player;
+      return new_state;
+    }
+  });
+  possibleStates = possibleStates.filter(function (element) {
+    return element !== undefined;
+  });
+  possibleMoves = possibleMoves.filter(function (element) {
+    return element !== undefined;
+  }); //console.log(myPreviousMove)
+
+  console.log("Todos los hijos de : " + node_depth);
+  console.log(possibleStates); //console.log("Possible Scores: ")
   //console.log(possibleScores);
   //////////////CHECK STOP OR BOTTOM LEVEL////////////////////
 
-  node_depth = node_depth + 1; //console.log("Depth: " + (depth-1))
+  node_depth = node_depth + 1;
+  var myPreviousMove = last_move; //console.log("Depth: " + (depth-1))
 
   if (node_depth === depth) {
-    if (currentPlayer == player) {
-      //////////////////////////////console.log("Bottom node. Min heurístic: " + getMin(possibleScores)) ;
-      return fn(getMin(possibleScores));
+    var retorno = [];
+
+    if (depth % 2 == 0) {
+      console.log("Bottom node. Min heurístic: " + getMinScore(possibleScores) + " y movimiento: " + myPreviousMove);
+      retorno.push(getMinScore(possibleScores));
+      retorno.push(myPreviousMove);
+      return fn(retorno);
     } else {
-      ///////////////////////////////////console.log("Bottom node. Max heurístic: " + getMax(possibleScores)); 
-      return fn(getMax(possibleScores));
+      console.log("Bottom node. Max heurístic: " + getMaxScore(possibleScores) + " y movimiento: " + myPreviousMove);
+      retorno.push(getMaxScore(possibleScores));
+      retorno.push(myPreviousMove);
+      return fn(retorno);
     }
   }
 
   if (possibleMoves.length < 1) {
-    console.log("NO MOVES");
-    return -1;
+    //console.log("NO MOVES")  
+    var leaf = [];
+    leaf.push(getHeuristic(state, node_depth));
+    leaf.push(myPreviousMove);
+    return fn(leaf);
   } //////////////////CREATE SONS  -  RECURSIVE///////////////////
 
 
@@ -26498,67 +27906,117 @@ async function getBestMove(moves, state, node_depth, count, fn) {
   let makeNodes = () => {
     return new Promise((resolve, reject) => {
       possibleStates.forEach(async function (state, i) {
-        /////////////////////////////////////console.log("A explorar hijo: " + i +" de " + (node_depth-1) + " "+ count)
-        //console.log(node.G.cells)
-        //node es cada estado <-
+        //////////////// get rules ////////////
+        var getRuleSet = function func() {
+          return new Promise((resolve, reject) => {
+            getStrategy(state, function (result) {
+              resolve(result);
+            });
+          });
+        };
 
-        /* let getMoveK = (node)=>{
-           return new Promise((resolve,reject)=>{
-             //console.log("lets get moves from player: " + node.ctx.currentPlayer)
-             getMovesKBS(node,(res)=>{resolve(res);})
-           })
-         }
-         let moves = await getMoveK(node)*/
-        ////////////////get moves//////////////
+        let ruleSet = await getRuleSet(); //////////Get all rules//////
+
+        var rules = getAllRules(ruleSet); ////////////////get moves//////////////
+
         var first_node_promise = function func() {
           return new Promise((resolve, reject) => {
-            getMovesKBS(state, function (result) {
+            getMovesKBS(state, rules, function (result) {
               resolve(result);
             });
           });
         };
 
         let new_moves = await first_node_promise();
-        new_moves.splice(2); //////////////Recursive Minmax////////////////
 
-        let callMinmaxLoop = function func() {
-          return new Promise((resolve, reject) => {
-            //console.log("lets loop " + depth)
-            getBestMove(new_moves, state, node_depth, count, function (result) {
-              resolve(result);
+        if (new_moves != "") {
+          //////////////Recursive Minmax///////////////
+          let callMinmaxLoop = function func() {
+            return new Promise((resolve, reject) => {
+              //console.log("lets loop " + depth)
+              getBestMove(new_moves, state, node_depth, possibleMoves[i], function (result) {
+                resolve(result);
+              });
             });
-          });
-        };
+          };
 
-        var heur = await callMinmaxLoop();
-        count = count + 1; //console.log("Heur: " + bstmov)
-
-        heuristics.push(heur);
-        resolve(heuristics);
+          var heur = await callMinmaxLoop();
+          heuristics.push(heur);
+          resolve(heuristics);
+        } else {
+          console.log("NO MOVES SBC");
+          console.log(getHeuristic(state, node_depth));
+          console.log(myPreviousMove);
+          var leaf = [];
+          leaf.push(getHeuristic(state, node_depth));
+          leaf.push(myPreviousMove);
+          heuristics.push(leaf);
+          resolve(heuristics);
+        }
       });
     });
   };
 
-  let heuristicas = await makeNodes(); ///////////////////////////////////console.log("Heurísticas de : "+ (node_depth-1) + " "+ count)
-  ///////////////////////////////////////console.log(heuristicas)
-  ///////////////MINMAX BACKPROPAGATION -> FINAL///////////////////////
+  let heuristicas = await makeNodes(); //console.log(state)
+  //console.log("Heurísticas de : "+ (node_depth-1))
+  //console.log(heuristicas)
+
+  for (let h of heuristicas) {//console.log("Move: " + h[1])
+    // console.log("H: " + h[0])
+  } ///////////////MINMAX BACKPROPAGATION -> FINAL///////////////////////
+
 
   if (node_depth == 1) {
-    var bestmov = possibleMoves[indexOfMax(heuristicas)]; ////////////////////////////////console.log("FINAL MOVE: ")
-    ////////////////////////////////console.log(bestmov)
+    let maxMove = -1000000000000000;
+    let bestmov;
+    console.log("FINAL MOVE: ");
 
+    for (let h of heuristicas) {
+      console.log("Move: " + h[1]);
+      console.log("H: " + h[0]);
+
+      if (h[0] > maxMove) {
+        maxMove = h[0];
+        bestmov = h[1];
+      }
+    }
+
+    console.log(bestmov);
     fn(bestmov);
   } else {
     ///////////////////////////console.log("Navigatin through node " +currentPlayer+player )
     //fn(getMax(heuristics))}*/
-    if (currentPlayer == player) {
-      ///////////////////////////////////////console.log("Nav node de: "+ (node_depth-1) + " "+ count+". Min heurístic: " + getMin(heuristics)) ;
-      return fn(getMin(heuristics));
+    var retorno = []; //console.log(heuristicas)
+
+    if ((node_depth - 1) % 2 == 1) {
+      console.log("Nav node de: " + (node_depth - 1) + ". Min heurístic: " + getMin(heuristicas) + " y movimiento: " + myPreviousMove);
+      retorno.push(getMin(heuristicas));
+      retorno.push(myPreviousMove);
+      return fn(retorno);
     } else {
-      ///////////////////////////////////////console.log("Nav node de: "+ (node_depth-1) + " "+ count+". Max heurístic: " + getMax(heuristics)); 
-      return fn(getMax(heuristics));
+      console.log("Nav node de: " + (node_depth - 1) + ". Max heurístic: " + getMax(heuristicas) + " y movimiento: " + myPreviousMove);
+      retorno.push(getMax(heuristicas));
+      retorno.push(myPreviousMove);
+      return fn(retorno);
     }
   }
+}
+
+async function getMovesKBS(state, rules, fn) {
+  let resultKBS = () => {
+    return new Promise((resolve, reject) => {
+      (0, _GameRBS.executeEngine)(state, rules, function (result) {
+        resolve(result);
+      });
+    });
+  };
+
+  let moves = await resultKBS();
+  moves = Array.from(new Set(moves.map(JSON.stringify)), JSON.parse);
+  console.log("Resultado del SBC: ");
+  console.log(moves); //console.log(state.G.cells)
+
+  fn(moves);
 }
 
 async function getStrategy(state, fn) {
@@ -26570,35 +28028,100 @@ async function getStrategy(state, fn) {
     });
   };
 
-  let ruleSet = await resultStrategy(); //console.log("Resultado del SBC: ");
-  //console.log(moves);
-  //console.log(state.G.cells)
-
+  let ruleSet = await resultStrategy();
   fn(ruleSet);
 } ///////////////////////
 
 
-function getHeuristic(new_state) {
-  /* var gote_eaten = new_state.G.gote_captured_pieces
-   var sente_eaten = new_state.G.sente_captured_pieces
-   if(gote_eaten.length < sente_eaten.length){return -10000000}
-   if(gote_eaten.length > sente_eaten.length){return 10000000}*/
-  return Math.floor(Math.random() * (50 + 50));
+function getHeuristic(new_state, node_depth) {
+  var gote_eaten = new_state.G.gote_captured_pieces;
+  var sente_eaten = new_state.G.sente_captured_pieces;
+  var board_pieces = new_state.G.cells;
+  var player = new_state.ctx.currentPlayer;
+  var piece_owner;
+  var piece_type;
+  var piece_value;
+  var player_score = 0;
+  var rival_score = 0;
+
+  for (let row of board_pieces) {
+    for (let piece of row) {
+      if (piece != null) {
+        piece_owner = piece.substr(0, 1);
+        piece_type = piece.substr(1, 4);
+        piece_value = getValueOfPiece(piece_type, false);
+
+        if (piece_owner == currentPlayer) {
+          player_score += piece_value;
+        } else {
+          rival_score += piece_value;
+        }
+      }
+    }
+  }
+
+  for (let piece of gote_eaten) {
+    piece_type = piece.substr(0, 4);
+    piece_value = getValueOfPiece(piece_type, false);
+
+    if (currentPlayer == "1") {
+      player_score += piece_value;
+    } else {
+      rival_score += piece_value;
+    }
+  }
+
+  for (let piece of sente_eaten) {
+    piece_type = piece.substr(0, 4);
+    piece_value = getValueOfPiece(piece_type, false);
+
+    if (currentPlayer == "0") {
+      player_score += piece_value;
+    } else {
+      rival_score += piece_value;
+    }
+  }
+
+  var check = (0, _Game.isCheck)(new_state.G, player);
+  var multiplier;
+
+  if (player == currentPlayer) {
+    multiplier = 5;
+  } else {
+    multiplier = -5;
+  }
+
+  player_score = Math.round((player_score + Number.EPSILON) * 1000) / 100;
+  rival_score = Math.round((rival_score + Number.EPSILON) * 1000) / 100; //console.log("puntuación: " + player_score + ".Rival score: " + rival_score)
+  // console.log("Priority: Player: "+ new_state.player_priority)
+  //console.log("Rival: " + new_state.rival_priority)
+
+  return player_score - rival_score + multiplier * check + (new_state.player_priority - new_state.rival_priority) * 9;
 }
 
 function getAllRules(ruleSet) {
   var importedRules = new Array();
   var rules = [];
 
-  var statrul = require('./rules/OpeningRookRules/StaticRookRules.js');
-
-  for (let i = 0; i < ruleSet.length; i++) {
-    if (ruleSet[i] == "StaticRookRules") {
+  for (let i = 0; i < ruleSet[0].length; i++) {
+    if (ruleSet[0][i] == "StaticRookRules") {
       importedRules.push(require('./rules/OpeningRookRules/StaticRookRules.js').StaticRookRules);
     }
 
-    if (ruleSet[i] == "RangingRookRules") {
+    if (ruleSet[0][i] == "RangingRookRules") {
       importedRules.push(require('./rules/OpeningRookRules/RangingRookRules.js').RangingRookRules);
+    }
+
+    if (ruleSet[0][i] == "Yagura") {
+      importedRules.push(require('./rules/Castles/Yagura.js').Yagura);
+    }
+
+    if (ruleSet[0][i] == "Boat") {
+      importedRules.push(require('./rules/Castles/Boat.js').Boat);
+    }
+
+    if (ruleSet[0][i] == "Mino") {
+      importedRules.push(require('./rules/Castles/Mino.js').Mino);
     }
   }
 
@@ -26608,62 +28131,152 @@ function getAllRules(ruleSet) {
     for (let j = 0; j < importedRules[i].length; j++) {
       rules.push(importedRules[i][j]);
     }
-  }
+  } //console.log(rules)
+
 
   return rules;
 }
 
-function indexOfMax(arr) {
-  var max = arr.reduce(function (a, b) {
-    return b > a ? b : a;
-  });
-  return arr.indexOf(max);
+function getMaxScore(arr) {
+  var max = -1000000000000000000;
+
+  for (let h of arr) {
+    if (h > max) {
+      max = h;
+    }
+  }
+
+  return max;
+}
+
+function getMinScore(arr) {
+  var min = 10000000000000000000;
+
+  for (let h of arr) {
+    if (h < min) {
+      min = h;
+    }
+  }
+
+  return min;
 }
 
 function getMax(arr) {
-  var max = arr.reduce(function (a, b) {
-    return b > a ? b : a;
-  });
+  var max = 0;
+
+  for (let h of arr) {
+    if (h[0] > max) {
+      max = h[0];
+    }
+  }
+
   return max;
 }
 
 function getMin(arr) {
-  var max = arr.reduce(function (a, b) {
-    return b < a ? b : a;
-  });
-  return max;
-}
-},{"./GameRBS.js":"src/GameRBS.js","./StrategyRBS.js":"src/StrategyRBS.js","./Game.js":"src/Game.js","./rules/OpeningRookRules/StaticRookRules.js":"src/rules/OpeningRookRules/StaticRookRules.js","./rules/OpeningRookRules/RangingRookRules.js":"src/rules/OpeningRookRules/RangingRookRules.js","./rules/BasicRules.js":"src/rules/BasicRules.js"}],"node_modules/boardgame.io/dist/esm/debug.js":[function(require,module,exports) {
-"use strict";
+  var min = 100000000000000000000;
 
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-Object.defineProperty(exports, "Debug", {
-  enumerable: true,
-  get: function () {
-    return _DebugF39f426b.D;
+  for (let h of arr) {
+    if (h[0] < min) {
+      min = h[0];
+    }
   }
-});
 
-var _DebugF39f426b = require("./Debug-f39f426b.js");
+  return min;
+}
 
-require("./turn-order-406c4349.js");
+function getValueOfPiece(piece, isHand) {
+  var value;
 
-require("immer");
+  if (isHand) {
+    if (piece == "P") {
+      value = 1.15;
+    }
 
-require("lodash.isplainobject");
+    if (piece == "L") {
+      value = 4.8;
+    }
 
-require("./reducer-efc3ec3e.js");
+    if (piece == "K") {
+      value = 5.1;
+    }
 
-require("rfc6902");
+    if (piece == "S") {
+      value = 7.2;
+    }
 
-require("flatted");
+    if (piece == "G") {
+      value = 7.8;
+    }
 
-require("setimmediate");
+    if (piece == "B") {
+      value = 11.1;
+    }
 
-require("./ai-7a5eea10.js");
-},{"./Debug-f39f426b.js":"node_modules/boardgame.io/dist/esm/Debug-f39f426b.js","./turn-order-406c4349.js":"node_modules/boardgame.io/dist/esm/turn-order-406c4349.js","immer":"node_modules/immer/dist/immer.esm.js","lodash.isplainobject":"node_modules/lodash.isplainobject/index.js","./reducer-efc3ec3e.js":"node_modules/boardgame.io/dist/esm/reducer-efc3ec3e.js","rfc6902":"node_modules/rfc6902/index.js","flatted":"node_modules/flatted/esm/index.js","setimmediate":"node_modules/setimmediate/setImmediate.js","./ai-7a5eea10.js":"node_modules/boardgame.io/dist/esm/ai-7a5eea10.js"}],"src/img/lance_r.png":[function(require,module,exports) {
+    if (piece == "R") {
+      value = 12.70;
+    }
+  } else {
+    if (piece == "P") {
+      value = 1;
+    }
+
+    if (piece == "L") {
+      value = 4.3;
+    }
+
+    if (piece == "K") {
+      value = 4.5;
+    }
+
+    if (piece == "S") {
+      value = 6.4;
+    }
+
+    if (piece == "G") {
+      value = 6.9;
+    }
+
+    if (piece == "B") {
+      value = 8.9;
+    }
+
+    if (piece == "R") {
+      value = 10.40;
+    }
+
+    if (piece == "KING") {
+      value = 10000;
+    }
+
+    if (piece == "AP") {
+      value = 4.2;
+    }
+
+    if (piece == "AL") {
+      value = 6.3;
+    }
+
+    if (piece == "AK") {
+      value = 6.4;
+    }
+
+    if (piece == "AS") {
+      value = 6.7;
+    }
+
+    if (piece == "AB") {
+      value = 11.5;
+    }
+
+    if (piece == "AR") {
+      value = 13;
+    }
+  }
+
+  return value;
+}
+},{"./GameRBS.js":"src/GameRBS.js","./StrategyRBS.js":"src/StrategyRBS.js","./Game.js":"src/Game.js","./rules/OpeningRookRules/StaticRookRules.js":"src/rules/OpeningRookRules/StaticRookRules.js","./rules/OpeningRookRules/RangingRookRules.js":"src/rules/OpeningRookRules/RangingRookRules.js","./rules/Castles/Yagura.js":"src/rules/Castles/Yagura.js","./rules/Castles/Boat.js":"src/rules/Castles/Boat.js","./rules/Castles/Mino.js":"src/rules/Castles/Mino.js","./rules/BasicRules.js":"src/rules/BasicRules.js"}],"src/img/lance_r.png":[function(require,module,exports) {
 module.exports = "/lance_r.3e2efd90.png";
 },{}],"src/img/pawn_r.png":[function(require,module,exports) {
 module.exports = "/pawn_r.fb1d92e7.png";
@@ -26681,6 +28294,18 @@ module.exports = "/rook_r.855cfcc3.png";
 module.exports = "/sente_king_r.a8eee47d.png";
 },{}],"src/img/gote_king_r.png":[function(require,module,exports) {
 module.exports = "/gote_king_r.b579bbbc.png";
+},{}],"src/img/lance_rr.png":[function(require,module,exports) {
+module.exports = "/lance_rr.be1ea53c.png";
+},{}],"src/img/knight_rr.png":[function(require,module,exports) {
+module.exports = "/knight_rr.5d276f7e.png";
+},{}],"src/img/gnral_de_plata_rr.png":[function(require,module,exports) {
+module.exports = "/gnral_de_plata_rr.bc1e202f.png";
+},{}],"src/img/semental_r.png":[function(require,module,exports) {
+module.exports = "/semental_r.9741325e.png";
+},{}],"src/img/dragon_r.png":[function(require,module,exports) {
+module.exports = "/dragon_r.32838b5b.png";
+},{}],"src/img/raised_pawn_r.png":[function(require,module,exports) {
+module.exports = "/raised_pawn_r.7cc0b554.png";
 },{}],"src/App.js":[function(require,module,exports) {
 "use strict";
 
@@ -26689,8 +28314,6 @@ var _client = require("boardgame.io/client");
 var _Game = require("./Game.js");
 
 var _ShogiAI = require("./ShogiAI.js");
-
-var _debug = require("boardgame.io/debug");
 
 var _lance_r = _interopRequireDefault(require("./img/lance_r.png"));
 
@@ -26710,9 +28333,20 @@ var _sente_king_r = _interopRequireDefault(require("./img/sente_king_r.png"));
 
 var _gote_king_r = _interopRequireDefault(require("./img/gote_king_r.png"));
 
+var _lance_rr = _interopRequireDefault(require("./img/lance_rr.png"));
+
+var _knight_rr = _interopRequireDefault(require("./img/knight_rr.png"));
+
+var _gnral_de_plata_rr = _interopRequireDefault(require("./img/gnral_de_plata_rr.png"));
+
+var _semental_r = _interopRequireDefault(require("./img/semental_r.png"));
+
+var _dragon_r = _interopRequireDefault(require("./img/dragon_r.png"));
+
+var _raised_pawn_r = _interopRequireDefault(require("./img/raised_pawn_r.png"));
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-//import { RulesEngine } from './AIExpertSystem.js';
 /////////IMAGENES PIEZAS//////////
 class ShogiClient {
   constructor(rootElement) {
@@ -26823,10 +28457,7 @@ class ShogiClient {
 
     const aiButtonMove = document.getElementById("AI_button_move");
     aiButtonMove.parameter = this.client;
-    aiButtonMove.addEventListener('click', _ShogiAI.requestMoveAI, false);
-    const aiButtonPlay = document.getElementById("AI_button_play");
-    aiButtonPlay.parameter = this.client;
-    aiButtonPlay.addEventListener('click', playAI, false); ////////////////////////
+    aiButtonMove.addEventListener('click', _ShogiAI.requestMoveAI, false); ////////////////////////
 
     const choosePieceToMove = event => {
       let cell = event.target.parentNode;
@@ -26948,1005 +28579,6 @@ function highlightPossibleMoves(possible_cells, cells, player) {
       }
     }
   }
-}
-
-function showPossibleMoves0(cells, row_id, column_id, piece) {
-  var possible_cells = [];
-  var column = 0;
-  var row = 0;
-  var owner_piece = null;
-
-  if (piece == "P") {
-    cells.forEach(cell => {
-      column = cell.dataset.column;
-      row = cell.dataset.row;
-      owner_piece = cell.dataset.piece.substr(0, 1);
-
-      if (row == row_id + 1 && column == column_id) {
-        if (owner_piece == "1") {
-          cell.className = "cell_capture_highlight";
-          possible_cells.push(cell);
-        } else {
-          cell.className = "cell_highlight";
-          possible_cells.push(cell);
-        }
-      }
-    });
-  } else if (piece == "L") {
-    for (let cell of cells) {
-      column = cell.dataset.column;
-      row = cell.dataset.row;
-
-      if (column == column_id && row > row_id) {
-        owner_piece = cell.dataset.piece.substr(0, 1);
-
-        if (owner_piece == "0") {
-          break;
-        } else if (owner_piece == "1") {
-          cell.className = "cell_capture_highlight";
-          possible_cells.push(cell);
-          break;
-        } else {
-          cell.className = "cell_highlight";
-          possible_cells.push(cell);
-        }
-      }
-    }
-  } else if (piece == "K") {
-    for (let cell of cells) {
-      column = cell.dataset.column;
-      row = cell.dataset.row;
-
-      if ((column == column_id + 1 || column == column_id - 1) && row == row_id + 2) {
-        owner_piece = cell.dataset.piece.substr(0, 1);
-
-        if (owner_piece == "0") {} else if (owner_piece == "1") {
-          cell.className = "cell_capture_highlight";
-          possible_cells.push(cell);
-        } else {
-          cell.className = "cell_highlight";
-          possible_cells.push(cell);
-        }
-      }
-    }
-  } else if (piece == "G" || piece == "AP" || piece == "AL" || piece == "AK" || piece == "AS") {
-    for (let cell of cells) {
-      column = cell.dataset.column;
-      row = cell.dataset.row;
-
-      if ((column == column_id + 1 || column == column_id - 1 || column == column_id) && (row == row_id + 1 || row == row_id - 1 || row == row_id)) {
-        owner_piece = cell.dataset.piece.substr(0, 1);
-
-        if (owner_piece == "0" || row == row_id - 1 && column == column_id + 1 || row == row_id - 1 && column == column_id - 1) {} else if (owner_piece == "1") {
-          cell.className = "cell_capture_highlight";
-          possible_cells.push(cell);
-        } else {
-          cell.className = "cell_highlight";
-          possible_cells.push(cell);
-        }
-      }
-    }
-  } else if (piece == "S") {
-    for (let cell of cells) {
-      column = cell.dataset.column;
-      row = cell.dataset.row;
-
-      if ((column == column_id + 1 || column == column_id - 1 || column == column_id) && (row == row_id + 1 || row == row_id - 1 || row == row_id)) {
-        owner_piece = cell.dataset.piece.substr(0, 1);
-
-        if (owner_piece == "0" || row == row_id - 1 && column == column_id || row == row_id && column == column_id - 1 || row == row_id && column == column_id + 1) {} else if (owner_piece == "1") {
-          cell.className = "cell_capture_highlight";
-          possible_cells.push(cell);
-        } else {
-          cell.className = "cell_highlight";
-          possible_cells.push(cell);
-        }
-      }
-    }
-  } else if (piece == "KING") {
-    for (let cell of cells) {
-      column = cell.dataset.column;
-      row = cell.dataset.row;
-
-      if ((column == column_id + 1 || column == column_id - 1 || column == column_id) && (row == row_id + 1 || row == row_id - 1 || row == row_id)) {
-        owner_piece = cell.dataset.piece.substr(0, 1);
-
-        if (owner_piece == "0") {} else if (owner_piece == "1") {
-          cell.className = "cell_capture_highlight";
-          possible_cells.push(cell);
-        } else {
-          cell.className = "cell_highlight";
-          possible_cells.push(cell);
-        }
-      }
-    }
-  } else if (piece == "R") {
-    var row_cells = [];
-    var rook_found = false;
-    cells.forEach(cell => {
-      if (cell.dataset.row == row_id) {
-        row_cells.push(cell);
-      }
-    });
-
-    for (let cell of row_cells) {
-      owner_piece = cell.dataset.piece.substr(0, 1);
-      column = cell.dataset.column;
-      row = cell.dataset.row;
-
-      if (column == column_id) {
-        rook_found = true;
-      } else if (cell.dataset.piece == "") {
-        possible_cells.push(cell);
-      } else if (owner_piece == "0" && !rook_found) {
-        possible_cells = [];
-      } else if (owner_piece == "0" && rook_found) {
-        break;
-      } else if (owner_piece == "1" && !rook_found) {
-        possible_cells = [];
-        possible_cells.push(cell);
-      } else if (owner_piece == "1" && rook_found) {
-        possible_cells.push(cell);
-        break;
-      }
-    }
-
-    var column_cells = [];
-    rook_found = false;
-    var possible_cells_column = [];
-    cells.forEach(cell => {
-      if (cell.dataset.column == column_id) {
-        column_cells.push(cell);
-      }
-    });
-
-    for (let cell of column_cells) {
-      owner_piece = cell.dataset.piece.substr(0, 1);
-      column = cell.dataset.column;
-      row = cell.dataset.row;
-
-      if (row == row_id) {
-        rook_found = true;
-      } else if (cell.dataset.piece == "") {
-        possible_cells_column.push(cell);
-      } else if (owner_piece == "0" && !rook_found) {
-        possible_cells_column = [];
-      } else if (owner_piece == "0" && rook_found) {
-        break;
-      } else if (owner_piece == "1" && !rook_found) {
-        possible_cells_column = [];
-        possible_cells_column.push(cell);
-      } else if (owner_piece == "1" && rook_found) {
-        possible_cells_column.push(cell);
-        break;
-      }
-    }
-
-    possible_cells = possible_cells.concat(possible_cells_column);
-    possible_cells.forEach(cell => {
-      if (cell.dataset.piece.substr(0, 1) == "1") {
-        cell.className = "cell_capture_highlight";
-      } else {
-        cell.className = "cell_highlight";
-      }
-    });
-  } else if (piece == "B") {
-    var diagonals1 = [];
-    var diagonals2 = [];
-    var diagonals3 = [];
-    var diagonals4 = []; ////Guardamos el tablero en array de 2 dimensiones -> se podría sacar de aqui para que solo se haga 1 vez
-
-    var row_cells = [];
-    var ind = 0;
-    var cells_array = [];
-
-    for (let i = 0; i < 9; i++) {
-      row_cells = [];
-
-      for (let j = 0; j < 9; j++) {
-        row_cells[j] = cells[ind];
-        ind++;
-      }
-
-      cells_array[i] = row_cells;
-    } //Recorremos el tablero obteniendo las diagonales que parten de la pieza -> creamos 4 diagonales
-
-
-    var roww = [];
-    var cell = 0;
-
-    for (let i = 1; i < 10; i++) {
-      if (cells_array[row_id + i] != undefined) {
-        roww = cells_array[row_id + i];
-
-        if (roww[column_id + i] != undefined) {
-          cell = roww[column_id + i];
-          diagonals3.push(cell);
-        }
-      }
-
-      if (cells_array[row_id + i] != undefined) {
-        roww = cells_array[row_id + i];
-
-        if (roww[column_id - i] != undefined) {
-          cell = roww[column_id - i];
-          diagonals4.push(cell);
-        }
-      }
-
-      if (cells_array[row_id - i] != undefined) {
-        roww = cells_array[row_id - i];
-
-        if (roww[column_id + i] != undefined) {
-          cell = roww[column_id + i];
-          diagonals2.push(cell);
-        }
-      }
-
-      if (cells_array[row_id - i] != undefined) {
-        roww = cells_array[row_id - i];
-
-        if (roww[column_id - i] != undefined) {
-          cell = roww[column_id - i];
-          diagonals1.push(cell);
-        }
-      }
-    } //Para cada diagonal, elegimos las casillas donde se puede mover el alfil
-
-
-    possible_cells = [];
-    var diagonal_name;
-
-    for (let i = 1; i < 5; i++) {
-      if (i == 1) {
-        diagonal_name = diagonals1;
-      }
-
-      if (i == 2) {
-        diagonal_name = diagonals2;
-      }
-
-      if (i == 3) {
-        diagonal_name = diagonals3;
-      }
-
-      if (i == 4) {
-        diagonal_name = diagonals4;
-      }
-
-      for (let cell of diagonal_name) {
-        owner_piece = cell.dataset.piece.substr(0, 1);
-
-        if (cell.dataset.piece == "") {
-          possible_cells.push(cell);
-        } else if (owner_piece == "1") {
-          possible_cells.push(cell);
-          break;
-        } else {
-          break;
-        }
-      }
-    }
-
-    possible_cells.forEach(cell => {
-      if (cell.dataset.piece.substr(0, 1) == "1") {
-        cell.className = "cell_capture_highlight";
-      } else {
-        cell.className = "cell_highlight";
-      }
-    });
-  } else if (piece == "AB") {
-    var diagonals1 = [];
-    var diagonals2 = [];
-    var diagonals3 = [];
-    var diagonals4 = []; ////Guardamos el tablero en array de 2 dimensiones -> se podría sacar de aqui para que solo se haga 1 vez
-
-    var row_cells = [];
-    var ind = 0;
-    var cells_array = [];
-
-    for (let i = 0; i < 9; i++) {
-      row_cells = [];
-
-      for (let j = 0; j < 9; j++) {
-        row_cells[j] = cells[ind];
-        ind++;
-      }
-
-      cells_array[i] = row_cells;
-    } //Recorremos el tablero obteniendo las diagonales que parten de la pieza -> creamos 4 diagonales
-
-
-    var roww = [];
-    var cell = 0;
-
-    for (let i = 1; i < 10; i++) {
-      if (cells_array[row_id + i] != undefined) {
-        roww = cells_array[row_id + i];
-
-        if (roww[column_id + i] != undefined) {
-          cell = roww[column_id + i];
-          diagonals3.push(cell);
-        }
-      }
-
-      if (cells_array[row_id + i] != undefined) {
-        roww = cells_array[row_id + i];
-
-        if (roww[column_id - i] != undefined) {
-          cell = roww[column_id - i];
-          diagonals4.push(cell);
-        }
-      }
-
-      if (cells_array[row_id - i] != undefined) {
-        roww = cells_array[row_id - i];
-
-        if (roww[column_id + i] != undefined) {
-          cell = roww[column_id + i];
-          diagonals2.push(cell);
-        }
-      }
-
-      if (cells_array[row_id - i] != undefined) {
-        roww = cells_array[row_id - i];
-
-        if (roww[column_id - i] != undefined) {
-          cell = roww[column_id - i];
-          diagonals1.push(cell);
-        }
-      }
-    } //Para cada diagonal, elegimos las casillas donde se puede mover el alfil
-
-
-    possible_cells = [];
-    var diagonal_name;
-
-    for (let i = 1; i < 5; i++) {
-      if (i == 1) {
-        diagonal_name = diagonals1;
-      }
-
-      if (i == 2) {
-        diagonal_name = diagonals2;
-      }
-
-      if (i == 3) {
-        diagonal_name = diagonals3;
-      }
-
-      if (i == 4) {
-        diagonal_name = diagonals4;
-      }
-
-      for (let cell of diagonal_name) {
-        owner_piece = cell.dataset.piece.substr(0, 1);
-
-        if (cell.dataset.piece == "") {
-          possible_cells.push(cell);
-        } else if (owner_piece == "1") {
-          possible_cells.push(cell);
-          break;
-        } else {
-          break;
-        }
-      }
-    }
-
-    possible_cells.forEach(cell => {
-      if (cell.dataset.piece.substr(0, 1) == "1") {
-        cell.className = "cell_capture_highlight";
-      } else {
-        cell.className = "cell_highlight";
-      }
-    });
-
-    for (let cell of cells) {
-      column = cell.dataset.column;
-      row = cell.dataset.row;
-
-      if ((column == column_id + 1 || column == column_id - 1 || column == column_id) && (row == row_id + 1 || row == row_id - 1 || row == row_id)) {
-        owner_piece = cell.dataset.piece.substr(0, 1);
-
-        if (owner_piece == "0") {} else if (owner_piece == "1") {
-          cell.className = "cell_capture_highlight";
-          possible_cells.push(cell);
-        } else {
-          cell.className = "cell_highlight";
-          possible_cells.push(cell);
-        }
-      }
-    }
-  } else if (piece == "AR") {
-    var row_cells = [];
-    var rook_found = false;
-    cells.forEach(cell => {
-      if (cell.dataset.row == row_id) {
-        row_cells.push(cell);
-      }
-    });
-
-    for (let cell of row_cells) {
-      owner_piece = cell.dataset.piece.substr(0, 1);
-      column = cell.dataset.column;
-      row = cell.dataset.row;
-
-      if (column == column_id) {
-        rook_found = true;
-      } else if (cell.dataset.piece == "") {
-        possible_cells.push(cell);
-      } else if (owner_piece == "0" && !rook_found) {
-        possible_cells = [];
-      } else if (owner_piece == "0" && rook_found) {
-        break;
-      } else if (owner_piece == "1" && !rook_found) {
-        possible_cells = [];
-        possible_cells.push(cell);
-      } else if (owner_piece == "1" && rook_found) {
-        possible_cells.push(cell);
-        break;
-      }
-    }
-
-    var column_cells = [];
-    rook_found = false;
-    var possible_cells_column = [];
-    cells.forEach(cell => {
-      if (cell.dataset.column == column_id) {
-        column_cells.push(cell);
-      }
-    });
-
-    for (let cell of column_cells) {
-      owner_piece = cell.dataset.piece.substr(0, 1);
-      column = cell.dataset.column;
-      row = cell.dataset.row;
-
-      if (row == row_id) {
-        rook_found = true;
-      } else if (cell.dataset.piece == "") {
-        possible_cells_column.push(cell);
-      } else if (owner_piece == "0" && !rook_found) {
-        possible_cells_column = [];
-      } else if (owner_piece == "0" && rook_found) {
-        break;
-      } else if (owner_piece == "1" && !rook_found) {
-        possible_cells_column = [];
-        possible_cells_column.push(cell);
-      } else if (owner_piece == "1" && rook_found) {
-        possible_cells_column.push(cell);
-        break;
-      }
-    }
-
-    possible_cells = possible_cells.concat(possible_cells_column);
-    possible_cells.forEach(cell => {
-      if (cell.dataset.piece.substr(0, 1) == "1") {
-        cell.className = "cell_capture_highlight";
-      } else {
-        cell.className = "cell_highlight";
-      }
-    });
-
-    for (let cell of cells) {
-      column = cell.dataset.column;
-      row = cell.dataset.row;
-
-      if ((column == column_id + 1 || column == column_id - 1 || column == column_id) && (row == row_id + 1 || row == row_id - 1 || row == row_id)) {
-        owner_piece = cell.dataset.piece.substr(0, 1);
-
-        if (owner_piece == "0") {} else if (owner_piece == "1") {
-          cell.className = "cell_capture_highlight";
-          possible_cells.push(cell);
-        } else {
-          cell.className = "cell_highlight";
-          possible_cells.push(cell);
-        }
-      }
-    }
-  }
-
-  return possible_cells;
-}
-
-function showPossibleMoves1(cells, row_id, column_id, piece) {
-  var possible_cells = [];
-  var column = 0;
-  var row = 0;
-
-  if (piece == "P") {
-    cells.forEach(cell => {
-      column = cell.dataset.column;
-      row = cell.dataset.row;
-      owner_piece = cell.dataset.piece.substr(0, 1);
-
-      if (row == row_id - 1 && column == column_id) {
-        if (owner_piece == "0") {
-          cell.className = "cell_capture_highlight";
-          possible_cells.push(cell);
-        } else {
-          cell.className = "cell_highlight";
-          possible_cells.push(cell);
-        }
-      }
-    });
-  } else if (piece == "L") {
-    for (let cell of cells) {
-      column = cell.dataset.column;
-      row = cell.dataset.row;
-
-      if (column == column_id && row < row_id) {
-        var owner_piece = cell.dataset.piece.substr(0, 1);
-
-        if (owner_piece == "1") {
-          break;
-        } else if (owner_piece == "0") {
-          cell.className = "cell_capture_highlight";
-          possible_cells.push(cell);
-          break;
-        } else {
-          cell.className = "cell_highlight";
-          possible_cells.push(cell);
-        }
-      }
-    }
-  } else if (piece == "K") {
-    for (let cell of cells) {
-      column = cell.dataset.column;
-      row = cell.dataset.row;
-
-      if ((column == column_id + 1 || column == column_id - 1) && row == row_id - 2) {
-        var owner_piece = cell.dataset.piece.substr(0, 1);
-
-        if (owner_piece == "1") {} else if (owner_piece == "0") {
-          cell.className = "cell_capture_highlight";
-          possible_cells.push(cell);
-        } else {
-          cell.className = "cell_highlight";
-          possible_cells.push(cell);
-        }
-      }
-    }
-  } else if (piece == "G" || piece == "AP" || piece == "AL" || piece == "AK" || piece == "AS") {
-    for (let cell of cells) {
-      column = cell.dataset.column;
-      row = cell.dataset.row;
-
-      if ((column == column_id + 1 || column == column_id - 1 || column == column_id) && (row == row_id + 1 || row == row_id - 1 || row == row_id)) {
-        var owner_piece = cell.dataset.piece.substr(0, 1);
-
-        if (owner_piece == "1" || row == row_id + 1 && column == column_id - 1 || row == row_id + 1 && column == column_id + 1) {} else if (owner_piece == "0") {
-          cell.className = "cell_capture_highlight";
-          possible_cells.push(cell);
-        } else {
-          cell.className = "cell_highlight";
-          possible_cells.push(cell);
-        }
-      }
-    }
-  } else if (piece == "S") {
-    for (let cell of cells) {
-      column = cell.dataset.column;
-      row = cell.dataset.row;
-
-      if ((column == column_id + 1 || column == column_id - 1 || column == column_id) && (row == row_id + 1 || row == row_id - 1 || row == row_id)) {
-        owner_piece = cell.dataset.piece.substr(0, 1);
-
-        if (owner_piece == "1" || row == row_id + 1 && column == column_id || row == row_id && column == column_id + 1 || row == row_id && column == column_id - 1) {} else if (owner_piece == "0") {
-          cell.className = "cell_capture_highlight";
-          possible_cells.push(cell);
-        } else {
-          cell.className = "cell_highlight";
-          possible_cells.push(cell);
-        }
-      }
-    }
-  } else if (piece == "KING") {
-    for (let cell of cells) {
-      column = cell.dataset.column;
-      row = cell.dataset.row;
-
-      if ((column == column_id + 1 || column == column_id - 1 || column == column_id) && (row == row_id + 1 || row == row_id - 1 || row == row_id)) {
-        owner_piece = cell.dataset.piece.substr(0, 1);
-
-        if (owner_piece == "1") {} else if (owner_piece == "0") {
-          cell.className = "cell_capture_highlight";
-          possible_cells.push(cell);
-        } else {
-          cell.className = "cell_highlight";
-          possible_cells.push(cell);
-        }
-      }
-    }
-  } else if (piece == "R") {
-    var row_cells = [];
-    var rook_found = false;
-    cells.forEach(cell => {
-      if (cell.dataset.row == row_id) {
-        row_cells.push(cell);
-      }
-    });
-
-    for (let cell of row_cells) {
-      owner_piece = cell.dataset.piece.substr(0, 1);
-      column = cell.dataset.column;
-      row = cell.dataset.row;
-
-      if (column == column_id) {
-        rook_found = true;
-      } else if (cell.dataset.piece == "") {
-        possible_cells.push(cell);
-      } else if (owner_piece == "1" && !rook_found) {
-        possible_cells = [];
-      } else if (owner_piece == "1" && rook_found) {
-        break;
-      } else if (owner_piece == "0" && !rook_found) {
-        possible_cells = [];
-        possible_cells.push(cell);
-      } else if (owner_piece == "0" && rook_found) {
-        possible_cells.push(cell);
-        break;
-      }
-    }
-
-    var column_cells = [];
-    rook_found = false;
-    var possible_cells_column = [];
-    cells.forEach(cell => {
-      if (cell.dataset.column == column_id) {
-        column_cells.push(cell);
-      }
-    });
-
-    for (let cell of column_cells) {
-      owner_piece = cell.dataset.piece.substr(0, 1);
-      column = cell.dataset.column;
-      row = cell.dataset.row;
-
-      if (row == row_id) {
-        rook_found = true;
-      } else if (cell.dataset.piece == "") {
-        possible_cells_column.push(cell);
-      } else if (owner_piece == "1" && !rook_found) {
-        possible_cells_column = [];
-      } else if (owner_piece == "1" && rook_found) {
-        break;
-      } else if (owner_piece == "0" && !rook_found) {
-        possible_cells_column = [];
-        possible_cells_column.push(cell);
-      } else if (owner_piece == "0" && rook_found) {
-        possible_cells_column.push(cell);
-        break;
-      }
-    }
-
-    possible_cells = possible_cells.concat(possible_cells_column);
-    possible_cells.forEach(cell => {
-      if (cell.dataset.piece.substr(0, 1) == "0") {
-        cell.className = "cell_capture_highlight";
-      } else {
-        cell.className = "cell_highlight";
-      }
-    });
-  } else if (piece == "B") {
-    var diagonals1 = [];
-    var diagonals2 = [];
-    var diagonals3 = [];
-    var diagonals4 = []; ////Guardamos el tablero en array de 2 dimensiones   -> se podría sacar de aqui para que solo se haga 1 vez
-
-    var row_cells = [];
-    var ind = 0;
-    var cells_array = [];
-    var cells_r = Array.prototype.slice.call(cells).reverse();
-
-    for (let i = 0; i < 9; i++) {
-      row_cells = [];
-
-      for (let j = 0; j < 9; j++) {
-        row_cells[j] = cells_r[ind];
-        ind++;
-      }
-
-      cells_array[i] = row_cells;
-    } //Recorremos el tablero obteniendo las diagonales que parten de la pieza -> creamos 4 diagonales
-
-
-    var roww = [];
-    var cell = 0;
-
-    for (let i = 1; i < 10; i++) {
-      if (cells_array[row_id + i] != undefined) {
-        roww = cells_array[row_id + i];
-
-        if (roww[column_id + i] != undefined) {
-          cell = roww[column_id + i];
-          diagonals3.push(cell);
-        }
-      }
-
-      if (cells_array[row_id + i] != undefined) {
-        roww = cells_array[row_id + i];
-
-        if (roww[column_id - i] != undefined) {
-          cell = roww[column_id - i];
-          diagonals4.push(cell);
-        }
-      }
-
-      if (cells_array[row_id - i] != undefined) {
-        roww = cells_array[row_id - i];
-
-        if (roww[column_id + i] != undefined) {
-          cell = roww[column_id + i];
-          diagonals2.push(cell);
-        }
-      }
-
-      if (cells_array[row_id - i] != undefined) {
-        roww = cells_array[row_id - i];
-
-        if (roww[column_id - i] != undefined) {
-          cell = roww[column_id - i];
-          diagonals1.push(cell);
-        }
-      }
-    } //Para cada diagonal, elegimos las casillas donde se puede mover el alfil
-
-
-    possible_cells = [];
-    var diagonal_name;
-
-    for (let i = 1; i < 5; i++) {
-      if (i == 1) {
-        diagonal_name = diagonals1;
-      }
-
-      if (i == 2) {
-        diagonal_name = diagonals2;
-      }
-
-      if (i == 3) {
-        diagonal_name = diagonals3;
-      }
-
-      if (i == 4) {
-        diagonal_name = diagonals4;
-      }
-
-      for (let cell of diagonal_name) {
-        owner_piece = cell.dataset.piece.substr(0, 1);
-
-        if (cell.dataset.piece == "") {
-          possible_cells.push(cell);
-        } else if (owner_piece == "0") {
-          possible_cells.push(cell);
-          break;
-        } else {
-          break;
-        }
-      }
-    }
-
-    possible_cells.forEach(cell => {
-      if (cell.dataset.piece.substr(0, 1) == "0") {
-        cell.className = "cell_capture_highlight";
-      } else {
-        cell.className = "cell_highlight";
-      }
-    });
-  } else if (piece == "AR") {
-    var row_cells = [];
-    var rook_found = false;
-    cells.forEach(cell => {
-      if (cell.dataset.row == row_id) {
-        row_cells.push(cell);
-      }
-    });
-
-    for (let cell of row_cells) {
-      owner_piece = cell.dataset.piece.substr(0, 1);
-      column = cell.dataset.column;
-      row = cell.dataset.row;
-
-      if (column == column_id) {
-        rook_found = true;
-      } else if (cell.dataset.piece == "") {
-        possible_cells.push(cell);
-      } else if (owner_piece == "1" && !rook_found) {
-        possible_cells = [];
-      } else if (owner_piece == "1" && rook_found) {
-        break;
-      } else if (owner_piece == "0" && !rook_found) {
-        possible_cells = [];
-        possible_cells.push(cell);
-      } else if (owner_piece == "0" && rook_found) {
-        possible_cells.push(cell);
-        break;
-      }
-    }
-
-    var column_cells = [];
-    rook_found = false;
-    var possible_cells_column = [];
-    cells.forEach(cell => {
-      if (cell.dataset.column == column_id) {
-        column_cells.push(cell);
-      }
-    });
-
-    for (let cell of column_cells) {
-      owner_piece = cell.dataset.piece.substr(0, 1);
-      column = cell.dataset.column;
-      row = cell.dataset.row;
-
-      if (row == row_id) {
-        rook_found = true;
-      } else if (cell.dataset.piece == "") {
-        possible_cells_column.push(cell);
-      } else if (owner_piece == "1" && !rook_found) {
-        possible_cells_column = [];
-      } else if (owner_piece == "1" && rook_found) {
-        break;
-      } else if (owner_piece == "0" && !rook_found) {
-        possible_cells_column = [];
-        possible_cells_column.push(cell);
-      } else if (owner_piece == "0" && rook_found) {
-        possible_cells_column.push(cell);
-        break;
-      }
-    }
-
-    possible_cells = possible_cells.concat(possible_cells_column);
-    possible_cells.forEach(cell => {
-      if (cell.dataset.piece.substr(0, 1) == "0") {
-        cell.className = "cell_capture_highlight";
-      } else {
-        cell.className = "cell_highlight";
-      }
-    });
-
-    for (let cell of cells) {
-      column = cell.dataset.column;
-      row = cell.dataset.row;
-
-      if ((column == column_id + 1 || column == column_id - 1 || column == column_id) && (row == row_id + 1 || row == row_id - 1 || row == row_id)) {
-        owner_piece = cell.dataset.piece.substr(0, 1);
-
-        if (owner_piece == "1") {} else if (owner_piece == "0") {
-          cell.className = "cell_capture_highlight";
-          possible_cells.push(cell);
-        } else {
-          cell.className = "cell_highlight";
-          possible_cells.push(cell);
-        }
-      }
-    }
-  } else if (piece == "AB") {
-    var diagonals1 = [];
-    var diagonals2 = [];
-    var diagonals3 = [];
-    var diagonals4 = []; ////Guardamos el tablero en array de 2 dimensiones   -> se podría sacar de aqui para que solo se haga 1 vez
-
-    var row_cells = [];
-    var ind = 0;
-    var cells_array = [];
-    var cells_r = Array.prototype.slice.call(cells).reverse();
-
-    for (let i = 0; i < 9; i++) {
-      row_cells = [];
-
-      for (let j = 0; j < 9; j++) {
-        row_cells[j] = cells_r[ind];
-        ind++;
-      }
-
-      cells_array[i] = row_cells;
-    } //Recorremos el tablero obteniendo las diagonales que parten de la pieza -> creamos 4 diagonales
-
-
-    var roww = [];
-    var cell = 0;
-
-    for (let i = 1; i < 10; i++) {
-      if (cells_array[row_id + i] != undefined) {
-        roww = cells_array[row_id + i];
-
-        if (roww[column_id + i] != undefined) {
-          cell = roww[column_id + i];
-          diagonals3.push(cell);
-        }
-      }
-
-      if (cells_array[row_id + i] != undefined) {
-        roww = cells_array[row_id + i];
-
-        if (roww[column_id - i] != undefined) {
-          cell = roww[column_id - i];
-          diagonals4.push(cell);
-        }
-      }
-
-      if (cells_array[row_id - i] != undefined) {
-        roww = cells_array[row_id - i];
-
-        if (roww[column_id + i] != undefined) {
-          cell = roww[column_id + i];
-          diagonals2.push(cell);
-        }
-      }
-
-      if (cells_array[row_id - i] != undefined) {
-        roww = cells_array[row_id - i];
-
-        if (roww[column_id - i] != undefined) {
-          cell = roww[column_id - i];
-          diagonals1.push(cell);
-        }
-      }
-    } //Para cada diagonal, elegimos las casillas donde se puede mover el alfil
-
-
-    possible_cells = [];
-    var diagonal_name;
-
-    for (let i = 1; i < 5; i++) {
-      if (i == 1) {
-        diagonal_name = diagonals1;
-      }
-
-      if (i == 2) {
-        diagonal_name = diagonals2;
-      }
-
-      if (i == 3) {
-        diagonal_name = diagonals3;
-      }
-
-      if (i == 4) {
-        diagonal_name = diagonals4;
-      }
-
-      for (let cell of diagonal_name) {
-        owner_piece = cell.dataset.piece.substr(0, 1);
-
-        if (cell.dataset.piece == "") {
-          possible_cells.push(cell);
-        } else if (owner_piece == "0") {
-          possible_cells.push(cell);
-          break;
-        } else {
-          break;
-        }
-      }
-    }
-
-    possible_cells.forEach(cell => {
-      if (cell.dataset.piece.substr(0, 1) == "0") {
-        cell.className = "cell_capture_highlight";
-      } else {
-        cell.className = "cell_highlight";
-      }
-    });
-
-    for (let cell of cells) {
-      column = cell.dataset.column;
-      row = cell.dataset.row;
-
-      if ((column == column_id + 1 || column == column_id - 1 || column == column_id) && (row == row_id + 1 || row == row_id - 1 || row == row_id)) {
-        owner_piece = cell.dataset.piece.substr(0, 1);
-
-        if (owner_piece == "1") {} else if (owner_piece == "0") {
-          cell.className = "cell_capture_highlight";
-          possible_cells.push(cell);
-        } else {
-          cell.className = "cell_highlight";
-          possible_cells.push(cell);
-        }
-      }
-    }
-  }
-
-  return possible_cells;
 }
 
 function capturePiece() {
@@ -28081,39 +28713,39 @@ function updateBoard(state, rootElement) {
 
     if (piece_name == "AP") {
       if (owner_piece == "0") {
-        cell.innerHTML = "<img src=\"".concat(_rook_r.default, "\" class=\"piece\" id=\"sente_piece\"/>");
+        cell.innerHTML = "<img src=\"".concat(_raised_pawn_r.default, "\" class=\"piece\" id=\"sente_piece\"/>");
       } else {
-        cell.innerHTML = "<img src=\"".concat(_rook_r.default, "\"class=\"piece\" id=\"gote_piece\"/>");
+        cell.innerHTML = "<img src=\"".concat(_raised_pawn_r.default, "\"class=\"piece\" id=\"gote_piece\"/>");
       }
     } else if (piece_name == "AL") {
       if (owner_piece == "0") {
-        cell.innerHTML = "<img src=\"".concat(_rook_r.default, "\"class=\"piece\" id=\"sente_piece\"/>");
+        cell.innerHTML = "<img src=\"".concat(_lance_rr.default, "\"class=\"piece\" id=\"sente_piece\"/>");
       } else {
-        cell.innerHTML = "<img src=\"".concat(_rook_r.default, "\" class=\"piece\" id=\"gote_piece\"/>");
+        cell.innerHTML = "<img src=\"".concat(_lance_rr.default, "\" class=\"piece\" id=\"gote_piece\"/>");
       }
     } else if (piece_name == "AS") {
       if (owner_piece == "0") {
-        cell.innerHTML = "<img src=\"".concat(_rook_r.default, "\" class=\"piece\"id=\"sente_piece\"/>");
+        cell.innerHTML = "<img src=\"".concat(_gnral_de_plata_rr.default, "\" class=\"piece\"id=\"sente_piece\"/>");
       } else {
-        cell.innerHTML = "<img src=\"".concat(_rook_r.default, "\"class=\"piece\" id=\"gote_piece\"/>");
+        cell.innerHTML = "<img src=\"".concat(_gnral_de_plata_rr.default, "\"class=\"piece\" id=\"gote_piece\"/>");
       }
     } else if (piece_name == "AK") {
       if (owner_piece == "0") {
-        cell.innerHTML = "<img src=\"".concat(_rook_r.default, "\"class=\"piece\" id=\"sente_piece\"/>");
+        cell.innerHTML = "<img src=\"".concat(_knight_rr.default, "\"class=\"piece\" id=\"sente_piece\"/>");
       } else {
-        cell.innerHTML = "<img src=\"".concat(_rook_r.default, "\" class=\"piece\" id=\"gote_piece\"/>");
+        cell.innerHTML = "<img src=\"".concat(_knight_rr.default, "\" class=\"piece\" id=\"gote_piece\"/>");
       }
     } else if (piece_name == "AB") {
       if (owner_piece == "0") {
-        cell.innerHTML = "<img src=\"".concat(_rook_r.default, "\"class=\"piece\" id=\"sente_piece\"/>");
+        cell.innerHTML = "<img src=\"".concat(_semental_r.default, "\"class=\"piece\" id=\"sente_piece\"/>");
       } else {
-        cell.innerHTML = "<img src=\"".concat(_rook_r.default, "\" class=\"piece\" id=\"gote_piece\"/>");
+        cell.innerHTML = "<img src=\"".concat(_semental_r.default, "\" class=\"piece\" id=\"gote_piece\"/>");
       }
     } else if (piece_name == "AR") {
       if (owner_piece == "0") {
-        cell.innerHTML = "<img src=\"".concat(_rook_r.default, "\"class=\"piece\" id=\"sente_piece\"/>");
+        cell.innerHTML = "<img src=\"".concat(_dragon_r.default, "\"class=\"piece\" id=\"sente_piece\"/>");
       } else {
-        cell.innerHTML = "<img src=\"".concat(_rook_r.default, "\" class=\"piece\" id=\"gote_piece\"/>");
+        cell.innerHTML = "<img src=\"".concat(_dragon_r.default, "\" class=\"piece\" id=\"gote_piece\"/>");
       }
     } else if (piece_name == "") {
       cell.innerHTML = '';
@@ -28136,25 +28768,9 @@ function updateCaptured(state) {
   gote_table.innerHTML = captured_divs.join('');
 }
 
-async function playAI(event) {
-  for (let i = 0; i < 10; i++) {
-    var result = function func() {
-      return new Promise((resolve, reject) => {
-        (0, _ShogiAI.requestMoveAI)(event, function (result) {
-          resolve(result);
-        });
-      });
-    };
-
-    event = await result();
-    console.log("tachan: ");
-    console.log(event);
-  }
-}
-
 const appElement = document.getElementById('panel_central');
 const app = new ShogiClient(appElement);
-},{"boardgame.io/client":"node_modules/boardgame.io/dist/esm/client.js","./Game.js":"src/Game.js","./ShogiAI.js":"src/ShogiAI.js","boardgame.io/debug":"node_modules/boardgame.io/dist/esm/debug.js","./img/lance_r.png":"src/img/lance_r.png","./img/pawn_r.png":"src/img/pawn_r.png","./img/gnal_de_oro_r.png":"src/img/gnal_de_oro_r.png","./img/knight_r.png":"src/img/knight_r.png","./img/gnral de plata_r.png":"src/img/gnral de plata_r.png","./img/bishop_r.png":"src/img/bishop_r.png","./img/rook_r.png":"src/img/rook_r.png","./img/sente_king_r.png":"src/img/sente_king_r.png","./img/gote_king_r.png":"src/img/gote_king_r.png"}],"node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+},{"boardgame.io/client":"node_modules/boardgame.io/dist/esm/client.js","./Game.js":"src/Game.js","./ShogiAI.js":"src/ShogiAI.js","./img/lance_r.png":"src/img/lance_r.png","./img/pawn_r.png":"src/img/pawn_r.png","./img/gnal_de_oro_r.png":"src/img/gnal_de_oro_r.png","./img/knight_r.png":"src/img/knight_r.png","./img/gnral de plata_r.png":"src/img/gnral de plata_r.png","./img/bishop_r.png":"src/img/bishop_r.png","./img/rook_r.png":"src/img/rook_r.png","./img/sente_king_r.png":"src/img/sente_king_r.png","./img/gote_king_r.png":"src/img/gote_king_r.png","./img/lance_rr.png":"src/img/lance_rr.png","./img/knight_rr.png":"src/img/knight_rr.png","./img/gnral_de_plata_rr.png":"src/img/gnral_de_plata_rr.png","./img/semental_r.png":"src/img/semental_r.png","./img/dragon_r.png":"src/img/dragon_r.png","./img/raised_pawn_r.png":"src/img/raised_pawn_r.png"}],"node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
@@ -28182,7 +28798,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "54956" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "49355" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

@@ -23,10 +23,7 @@ export const Shogi = {
     moves: {
       movePiece: (G, ctx, initial_row,initial_column, target_row,target_column,player_piece,highlight=null) => {
         /////////////////////////// MOVIMIENTO //////////////////////////
-        //console.log("Player: " + ctx.currentPlayer + " wants to move " + player_piece + " de " + initial_row+ " a " + target_row)
-        //console.log("Y de " + initial_column + " a " + target_column)
         let possible_cells = getPossibleCells(G.cells,initial_row,initial_column,player_piece,ctx.currentPlayer)
-        //console.log(possible_cells)
 
         var valid_move = false;
         var row = G.cells[initial_row];
@@ -75,7 +72,7 @@ export const Shogi = {
           if(still_check){return INVALID_MOVE}      
         ////////////////////////////////////////////////////////////////    
 
-        /////////////////////////// PROMOCIÓN //////////////////////////////
+        /////////////////////////// PROMOCIÓN ////////////////////////////// REVISAR!!!!!!!!!!!!!!
         let arised_piece = player_piece.substr(0,1);
         if(   ((target_row>=6 && ctx.currentPlayer==0) || (target_row<=2 && ctx.currentPlayer==1) 
               || (initial_row>=6 && ctx.currentPlayer==0) || (initial_row<=2 && ctx.currentPlayer==1))
@@ -95,7 +92,6 @@ export const Shogi = {
       revivePiece: (G, ctx, target_row,target_column,player_piece,highlight=null) => {
         /////////////////////////// MOVIMIENTO //////////////////////////
         let possible_cells = getPossibleRevive(G.cells,player_piece.substr(1,4),player_piece.substr(0,1))
-        console.log("pos: " + possible_cells)
         var valid_move = false;
         var new_row = G.cells[target_row];
 
@@ -145,7 +141,6 @@ export const Shogi = {
               possible_moves = getPossibleCells(G.cells,row_id,column_id,piece)
               if(possible_moves!=null && possible_moves.length>0){
                 for(let move of possible_moves){
-                  //console.log("Mando..." + row_id + " " + column_id + " a " + move + " y mando " + piece.substr(1,4))
                   moves.push({move: 'movePiece', args: [row_id,column_id,move.substr(0,1),move.substr(1,2),piece.substr(1,4)]})
                 }
               }
@@ -257,10 +252,8 @@ export const Shogi = {
     }
   }
   export function getPossibleCells(cells,row_id,column_id,piece,player){
-    //console.log("get" + cells + row_id + column_id + piece + player)
     if(player=="0"){return getPossibleCellsSente(cells,row_id,column_id,piece)}
     if(player=="1"){return getPossibleCellsGote(cells,row_id,column_id,piece)}
-
   }
   function getPossibleCellsSente(cells,row_id,column_id,piece){
     var possible_cells = [];
@@ -334,29 +327,24 @@ export const Shogi = {
           if(row_id>0  && column_id>0 && (row[column_id-1]==null || row[column_id-1].substr(0,1)=="1")){
             let possible_cell = (row_id-1).toString().concat(column_id-1);
             possible_cells.push(possible_cell)
-            //console.log("Silver move: " + possible_cell);
           }
           if(row_id>0 && column_id<8 && (row[column_id+1]==null || row[column_id+1].substr(0,1)=="1")){
             let possible_cell = (row_id-1).toString().concat(column_id+1);
             possible_cells.push(possible_cell)
-            //console.log("Silver move: " + possible_cell);
           }
           
           row = cells[row_id+1];
           if(row_id<8 && column_id>0 && (row[column_id-1]==null || row[column_id-1].substr(0,1)=="1")){
             let possible_cell = (row_id+1).toString().concat(column_id-1);
             possible_cells.push(possible_cell)
-            //console.log("Silver move: " + possible_cell);
           }
           if(row_id<8 && column_id<8 && (row[column_id+1]==null || row[column_id+1].substr(0,1)=="1")){
             let possible_cell = (row_id+1).toString().concat(column_id+1);
             possible_cells.push(possible_cell)
-            //console.log("Silver move: " + possible_cell);
           }
           if(row_id<8 && (row[column_id]==null || row[column_id].substr(0,1)=="1")){
             let possible_cell = (row_id+1).toString().concat(column_id);
             possible_cells.push(possible_cell)
-            //console.log("Silver move: " + possible_cell);
           }
         }
         else if(piece=="KING"){
@@ -410,12 +398,10 @@ export const Shogi = {
                 if(!right_stop && (column_id-i)>=0 && (actual_row[column_id-i]==null || actual_row[column_id-i].substr(0,1)=="1")){
                   let possible_cell = row_id.toString().concat(column_id-i);
                   possible_cells.push(possible_cell)
-                  //console.log("Rook move 1: " + possible_cell);
                 }  
                 if(!left_stop && (column_id+i)<=8 && (actual_row[column_id+i]==null || actual_row[column_id+i].substr(0,1)=="1") ){
                   let possible_cell = row_id.toString().concat(column_id+i);
                   possible_cells.push(possible_cell)
-                  //console.log("Rook move 2: " + possible_cell);
                 } 
                 if(!right_stop && (column_id-i)>=0 && actual_row[column_id-i]!=null && (actual_row[column_id-i].substr(0,1)=="0" || actual_row[column_id-i].substr(0,1)=="1")){right_stop=true} 
                 if(!left_stop && (column_id+i)<=8 && actual_row[column_id+i]!=null && (actual_row[column_id+i].substr(0,1)=="0" || actual_row[column_id+i].substr(0,1)=="1")){left_stop=true} 
@@ -425,12 +411,10 @@ export const Shogi = {
                 if(!back_stop && (row_id-i)>=0 && (back_row[column_id]==null || back_row[column_id].substr(0,1)=="1")){
                   let possible_cell = (row_id-i).toString().concat(column_id);
                   possible_cells.push(possible_cell)
-                 // console.log("Rook move 3: " + possible_cell);
                 }  
                 if(!front_stop && (row_id+i)<=8 && (front_row[column_id]==null || front_row[column_id].substr(0,1)=="1") ){
                   let possible_cell = (row_id+i).toString().concat(column_id);
                   possible_cells.push(possible_cell)
-                  //console.log("Rook move 4: " + possible_cell);
                 } 
                 if(!back_stop && (row_id-i)>=0 && back_row[column_id]!=null &&  (back_row[column_id].substr(0,1)=="0" || back_row[column_id].substr(0,1)=="1")){back_stop=true} 
                 if(!front_stop && (row_id+i)<=8 && front_row[column_id]!=null && (front_row[column_id].substr(0,1)=="0" || front_row[column_id].substr(0,1)=="1")){front_stop=true} 
@@ -448,11 +432,10 @@ export const Shogi = {
           for(let i=1;i<10;i++){
             back_row = cells[row_id-i]
             front_row = cells[row_id+i]
-            //back_right
+              //back right
               if(!back_right_stop && back_row!=null && (column_id+i)<9 && (back_row[column_id+i]==null || back_row[column_id+i].substr(0,1)=="1")){
                   let possible_cell = (row_id-i).toString().concat(column_id+i);
                   possible_cells.push(possible_cell)
-                  //console.log("Bishop move 1: " + possible_cell);
               }  
               if(!back_right_stop &&  back_row!=null && (column_id+i)<9 && back_row[column_id+i]!=null &&(back_row[column_id+i].substr(0,1)=="0" || back_row[column_id+i].substr(0,1)=="1")){back_right_stop=true} 
             
@@ -460,7 +443,6 @@ export const Shogi = {
               if(!back_left_stop && back_row!=null && (column_id-i)>=0 && (back_row[column_id-i]==null || back_row[column_id-i].substr(0,1)=="1")){
                   let possible_cell = (row_id-i).toString().concat(column_id-i);
                   possible_cells.push(possible_cell)
-                  //console.log("Bishop move 2: " + possible_cell);
               } 
               if(!back_left_stop && back_row!=null && (column_id-i)>=0 && back_row[column_id-i]!=null  &&  (back_row[column_id-i].substr(0,1)=="0" || back_row[column_id-i].substr(0,1)=="1")){back_left_stop=true} 
 
@@ -468,7 +450,6 @@ export const Shogi = {
               if(!front_right_stop && front_row!=null && (column_id+i)<9 && (front_row[column_id+i]==null || front_row[column_id+i].substr(0,1)=="1")){
                 let possible_cell = (row_id+i).toString().concat(column_id+i);
                 possible_cells.push(possible_cell)
-                //console.log("Bishop move 3: " + possible_cell);
               } 
               if(!front_right_stop && front_row!=null && (column_id+i)<9 && front_row[column_id+i]!=null &&  (front_row[column_id+i].substr(0,1)=="0" || front_row[column_id+i].substr(0,1)=="1")){front_right_stop=true} 
 
@@ -476,7 +457,6 @@ export const Shogi = {
               if(!front_left_stop && front_row!=null && (column_id-i)>=0 && (front_row[column_id-i]==null || front_row[column_id-i].substr(0,1)=="1")){
                 let possible_cell = (row_id+i).toString().concat(column_id-i);
                 possible_cells.push(possible_cell)
-                //console.log("Bishop move 4: " + possible_cell);
               } 
               if(!front_left_stop && front_row!=null && (column_id-i)>=0 && front_row[column_id-i]!=null &&   (front_row[column_id-i].substr(0,1)=="0" || front_row[column_id-i].substr(0,1)=="1")){front_left_stop=true} 
 
@@ -499,7 +479,6 @@ export const Shogi = {
               if(!back_right_stop && back_row!=null && (column_id+i)<9 && (back_row[column_id+i]==null || back_row[column_id+i].substr(0,1)=="1")){
                   let possible_cell = (row_id-i).toString().concat(column_id+i);
                   possible_cells.push(possible_cell)
-                  //console.log("Semental move 1: " + possible_cell);
               }  
               if(!back_right_stop &&  back_row!=null && (column_id+i)<9 && back_row[column_id+i]!=null &&(back_row[column_id+i].substr(0,1)=="0" || back_row[column_id+i].substr(0,1)=="1")){back_right_stop=true} 
             
@@ -507,7 +486,6 @@ export const Shogi = {
               if(!back_left_stop && back_row!=null && (column_id-i)>=0 && (back_row[column_id-i]==null || back_row[column_id-i].substr(0,1)=="1")){
                   let possible_cell = (row_id-i).toString().concat(column_id-i);
                   possible_cells.push(possible_cell)
-                  //console.log("Semental move 2: " + possible_cell);
               } 
               if(!back_left_stop && back_row!=null && (column_id-i)>=0 && back_row[column_id-i]!=null  &&  (back_row[column_id-i].substr(0,1)=="0" || back_row[column_id-i].substr(0,1)=="1")){back_left_stop=true} 
 
@@ -515,7 +493,6 @@ export const Shogi = {
               if(!front_right_stop && front_row!=null && (column_id+i)<9 && (front_row[column_id+i]==null || front_row[column_id+i].substr(0,1)=="1")){
                 let possible_cell = (row_id+i).toString().concat(column_id+i);
                 possible_cells.push(possible_cell)
-                //console.log("Semental move 3: " + possible_cell);
               } 
               if(!front_right_stop && front_row!=null && (column_id+i)<9 && front_row[column_id+i]!=null &&  (front_row[column_id+i].substr(0,1)=="0" || front_row[column_id+i].substr(0,1)=="1")){front_right_stop=true} 
 
@@ -523,7 +500,6 @@ export const Shogi = {
               if(!front_left_stop && front_row!=null && (column_id-i)>=0 && (front_row[column_id-i]==null || front_row[column_id-i].substr(0,1)=="1")){
                 let possible_cell = (row_id+i).toString().concat(column_id-i);
                 possible_cells.push(possible_cell)
-                //console.log("Semental move 4: " + possible_cell);
               } 
               if(!front_left_stop && front_row!=null && (column_id-i)>=0 && front_row[column_id-i]!=null &&   (front_row[column_id-i].substr(0,1)=="0" || front_row[column_id-i].substr(0,1)=="1")){front_left_stop=true} 
           }
@@ -532,26 +508,22 @@ export const Shogi = {
           if(row_id>0 && (row[column_id]==null || row[column_id].substr(0,1)=="1")){
             let possible_cell = (row_id-1).toString().concat(column_id);
             possible_cells.push(possible_cell)
-            //console.log("Semental move 1.2: " + possible_cell);
           }
           
           row = cells[row_id];
           if(column_id>0 && (row[column_id-1]==null || row[column_id-1].substr(0,1)=="1")){
             let possible_cell = (row_id).toString().concat(column_id-1);
             possible_cells.push(possible_cell)
-            //console.log("Semental move 1.4: " + possible_cell);
           }
           if(column_id<8 && (row[column_id+1]==null || row[column_id+1].substr(0,1)=="1")){
             let possible_cell = (row_id).toString().concat(column_id+1);
             possible_cells.push(possible_cell)
-            //console.log("Semental move 1.5: " + possible_cell);
           }
 
           row = cells[row_id+1];
           if(row_id<8 && (row[column_id]==null || row[column_id].substr(0,1)=="1")){
             let possible_cell = (row_id+1).toString().concat(column_id);
             possible_cells.push(possible_cell)
-            //console.log("Semental move 1.7: " + possible_cell);
           }
 
 
@@ -568,12 +540,10 @@ export const Shogi = {
                 if(!right_stop && (column_id-i)>=0 && (actual_row[column_id-i]==null || actual_row[column_id-i].substr(0,1)=="1")){
                   let possible_cell = row_id.toString().concat(column_id-i);
                   possible_cells.push(possible_cell)
-                  //console.log("Dragon move 1: " + possible_cell);
                 }  
                 if(!left_stop && (column_id+i)<=8 && (actual_row[column_id+i]==null || actual_row[column_id+i].substr(0,1)=="1") ){
                   let possible_cell = row_id.toString().concat(column_id+i);
                   possible_cells.push(possible_cell)
-                  //console.log("Dragon move 2: " + possible_cell);
                 } 
                 if(!right_stop && (column_id-i)>=0 && actual_row[column_id-i]!=null && (actual_row[column_id-i].substr(0,1)=="0" || actual_row[column_id-i].substr(0,1)=="1")){right_stop=true} 
                 if(!left_stop && (column_id+i)<=8 && actual_row[column_id+i]!=null && (actual_row[column_id+i].substr(0,1)=="0" || actual_row[column_id+i].substr(0,1)=="1")){left_stop=true} 
@@ -583,12 +553,10 @@ export const Shogi = {
                 if(!back_stop && (row_id-i)>=0 && (back_row[column_id]==null || back_row[column_id].substr(0,1)=="1")){
                   let possible_cell = (row_id-i).toString().concat(column_id);
                   possible_cells.push(possible_cell)
-                  //console.log("Dragon move 3: " + possible_cell);
                 }  
                 if(!front_stop && (row_id+i)<=8 && (front_row[column_id]==null || front_row[column_id].substr(0,1)=="1") ){
                   let possible_cell = (row_id+i).toString().concat(column_id);
                   possible_cells.push(possible_cell)
-                  //console.log("Dragon move 4: " + possible_cell);
                 } 
                 if(!back_stop && (row_id-i)>=0 && back_row[column_id]!=null &&  (back_row[column_id].substr(0,1)=="0" || back_row[column_id].substr(0,1)=="1")){back_stop=true} 
                 if(!front_stop && (row_id+i)<=8 && front_row[column_id]!=null && (front_row[column_id].substr(0,1)=="0" || front_row[column_id].substr(0,1)=="1")){front_stop=true} 
@@ -598,25 +566,21 @@ export const Shogi = {
           if(row_id>0 && column_id>0 && (row[column_id-1]==null || row[column_id-1].substr(0,1)=="1")){
             let possible_cell = (row_id-1).toString().concat(column_id-1);
             possible_cells.push(possible_cell)
-            //console.log("Dragon move 1.1: " + possible_cell);
           }
           
           if(row_id>0 && column_id<8 && (row[column_id+1]==null || row[column_id+1].substr(0,1)=="1")){
             let possible_cell = (row_id-1).toString().concat(column_id+1);
             possible_cells.push(possible_cell)
-            //console.log("Dragon move 1.2: " + possible_cell);
           }
 
           row = cells[row_id+1];
           if(row_id<8 && column_id<8 && (row[column_id+1]==null || row[column_id+1].substr(0,1)=="1")){
             let possible_cell = (row_id+1).toString().concat(column_id+1);
             possible_cells.push(possible_cell)
-            //console.log("Dragon move 1.4: " + possible_cell);
           }
           if(row_id<8 && column_id>0 && (row[column_id-1]==null || row[column_id-1].substr(0,1)=="1")){
             let possible_cell = (row_id+1).toString().concat(column_id-1);
             possible_cells.push(possible_cell)
-            //console.log("Dragon move 1.3: " + possible_cell);
           }
         }
         return possible_cells;
@@ -629,7 +593,6 @@ export const Shogi = {
           if(row_id>0 && (next_row[column_id]==null || next_row[column_id].substr(0,1)=="0")){
             let possible_cell = (row_id-1).toString().concat(column_id);
             possible_cells.push(possible_cell)
-            //console.log(possible_cells)
           }
            
           
@@ -642,7 +605,6 @@ export const Shogi = {
                   let possible_cell = i.toString().concat(column_id);
                   possible_cells.push(possible_cell)
                   if(row[column_id]!=null && row[column_id].substr(0,1)=="0"){stop=true}
-                  //console.log("Lance moves to: " + possible_cell)
                 }
                 else{break;}
               }
@@ -652,13 +614,11 @@ export const Shogi = {
           if(row_id>1){
             if((row[column_id+1]==null || row[column_id+1].substr(0,1)=="0") && column_id<8 ){
               let possible_cell = (row_id-2).toString().concat(column_id+1);
-              possible_cells.push(possible_cell)  
-              //console.log("Knight moves to: " + possible_cell)      
+              possible_cells.push(possible_cell)       
              }
             if((row[column_id-1]==null || row[column_id-1].substr(0,1)=="0") && (column_id-1)>=0 ){
               let possible_cell = (row_id-2).toString().concat(column_id-1);
               possible_cells.push(possible_cell)
-              //console.log("Knight moves to: " + possible_cell)
              }
           }
          
@@ -669,7 +629,6 @@ export const Shogi = {
             if(row_id<8 && (row[column_id]==null || row[column_id].substr(0,1)=="0")){
               let possible_cell = (row_id+1).toString().concat(column_id);
               possible_cells.push(possible_cell)
-              //console.log("G moves to: " + possible_cell)
             } 
             row = cells[row_id];
             if(column_id>0 && (row[column_id-1]==null || row[column_id-1].substr(0,1)=="0")){
@@ -700,29 +659,24 @@ export const Shogi = {
           if(row_id<8  && column_id>0 && (row[column_id-1]==null || row[column_id-1].substr(0,1)=="0")){
             let possible_cell = (row_id+1).toString().concat(column_id-1);
             possible_cells.push(possible_cell)
-            //console.log("Silver move: " + possible_cell);
           }
           if(row_id<8 && column_id<8 && (row[column_id+1]==null || row[column_id+1].substr(0,1)=="0")){
             let possible_cell = (row_id+1).toString().concat(column_id+1);
             possible_cells.push(possible_cell)
-            //console.log("Silver move: " + possible_cell);
           }
           
           row = cells[row_id-1];
           if(row_id>0 && column_id>0 && (row[column_id-1]==null || row[column_id-1].substr(0,1)=="0")){
             let possible_cell = (row_id-1).toString().concat(column_id-1);
             possible_cells.push(possible_cell)
-            //console.log("Silver move: " + possible_cell);
           }
           if(row_id>0 && column_id<8 && (row[column_id+1]==null || row[column_id+1].substr(0,1)=="0")){
             let possible_cell = (row_id-1).toString().concat(column_id+1);
             possible_cells.push(possible_cell)
-            //console.log("Silver move: " + possible_cell);
           }
           if(row_id>0 && (row[column_id]==null || row[column_id].substr(0,1)=="0")){
             let possible_cell = (row_id-1).toString().concat(column_id);
             possible_cells.push(possible_cell)
-            //console.log("Silver move: " + possible_cell);
           }
         }
         else if(piece=="KING"){
@@ -776,12 +730,10 @@ export const Shogi = {
                 if(!right_stop && (column_id-i)>=0 && (actual_row[column_id-i]==null || actual_row[column_id-i].substr(0,1)=="0")){
                   let possible_cell = row_id.toString().concat(column_id-i);
                   possible_cells.push(possible_cell)
-                  //console.log("Rook move 1: " + possible_cell);
                 }  
                 if(!left_stop && (column_id+i)<=8 && (actual_row[column_id+i]==null || actual_row[column_id+i].substr(0,1)=="0") ){
                   let possible_cell = row_id.toString().concat(column_id+i);
                   possible_cells.push(possible_cell)
-                  //console.log("Rook move 2: " + possible_cell);
                 } 
                 if(!right_stop && (column_id-i)>=0 && actual_row[column_id-i]!=null && (actual_row[column_id-i].substr(0,1)=="0" || actual_row[column_id-i].substr(0,1)=="1")){right_stop=true} 
                 if(!left_stop && (column_id+i)<=8 && actual_row[column_id+i]!=null && (actual_row[column_id+i].substr(0,1)=="0" || actual_row[column_id+i].substr(0,1)=="1")){left_stop=true} 
@@ -791,12 +743,10 @@ export const Shogi = {
                 if(!back_stop && (row_id-i)>=0 && (back_row[column_id]==null || back_row[column_id].substr(0,1)=="0")){
                   let possible_cell = (row_id-i).toString().concat(column_id);
                   possible_cells.push(possible_cell)
-                 // console.log("Rook move 3: " + possible_cell);
                 }  
                 if(!front_stop && (row_id+i)<=8 && (front_row[column_id]==null || front_row[column_id].substr(0,1)=="0") ){
                   let possible_cell = (row_id+i).toString().concat(column_id);
                   possible_cells.push(possible_cell)
-                  //console.log("Rook move 4: " + possible_cell);
                 } 
                 if(!back_stop && (row_id-i)>=0 && back_row[column_id]!=null &&  (back_row[column_id].substr(0,1)=="0" || back_row[column_id].substr(0,1)=="1")){back_stop=true} 
                 if(!front_stop && (row_id+i)<=8 && front_row[column_id]!=null && (front_row[column_id].substr(0,1)=="0" || front_row[column_id].substr(0,1)=="1")){front_stop=true} 
@@ -818,7 +768,6 @@ export const Shogi = {
               if(!back_right_stop && back_row!=null && (column_id+i)<9 && (back_row[column_id+i]==null || back_row[column_id+i].substr(0,1)=="0")){
                   let possible_cell = (row_id-i).toString().concat(column_id+i);
                   possible_cells.push(possible_cell)
-                  //console.log("Bishop move 1: " + possible_cell);
               }  
               if(!back_right_stop &&  back_row!=null && (column_id+i)<9 && back_row[column_id+i]!=null &&(back_row[column_id+i].substr(0,1)=="0" || back_row[column_id+i].substr(0,1)=="1")){back_right_stop=true} 
             
@@ -826,7 +775,6 @@ export const Shogi = {
               if(!back_left_stop && back_row!=null && (column_id-i)>=0 && (back_row[column_id-i]==null || back_row[column_id-i].substr(0,1)=="0")){
                   let possible_cell = (row_id-i).toString().concat(column_id-i);
                   possible_cells.push(possible_cell)
-                  //console.log("Bishop move 2: " + possible_cell);
               } 
               if(!back_left_stop && back_row!=null && (column_id-i)>=0 && back_row[column_id-i]!=null  &&  (back_row[column_id-i].substr(0,1)=="0" || back_row[column_id-i].substr(0,1)=="1")){back_left_stop=true} 
 
@@ -834,7 +782,6 @@ export const Shogi = {
               if(!front_right_stop && front_row!=null && (column_id+i)<9 && (front_row[column_id+i]==null || front_row[column_id+i].substr(0,1)=="0")){
                 let possible_cell = (row_id+i).toString().concat(column_id+i);
                 possible_cells.push(possible_cell)
-                //console.log("Bishop move 3: " + possible_cell);
               } 
               if(!front_right_stop && front_row!=null && (column_id+i)<9 && front_row[column_id+i]!=null &&  (front_row[column_id+i].substr(0,1)=="0" || front_row[column_id+i].substr(0,1)=="1")){front_right_stop=true} 
 
@@ -842,7 +789,6 @@ export const Shogi = {
               if(!front_left_stop && front_row!=null && (column_id-i)>=0 && (front_row[column_id-i]==null || front_row[column_id-i].substr(0,1)=="0")){
                 let possible_cell = (row_id+i).toString().concat(column_id-i);
                 possible_cells.push(possible_cell)
-                //console.log("Bishop move 4: " + possible_cell);
               } 
               if(!front_left_stop && front_row!=null && (column_id-i)>=0 && front_row[column_id-i]!=null &&   (front_row[column_id-i].substr(0,1)=="0" || front_row[column_id-i].substr(0,1)=="1")){front_left_stop=true} 
 
@@ -865,7 +811,6 @@ export const Shogi = {
               if(!back_right_stop && back_row!=null && (column_id+i)<9 && (back_row[column_id+i]==null || back_row[column_id+i].substr(0,1)=="0")){
                   let possible_cell = (row_id-i).toString().concat(column_id+i);
                   possible_cells.push(possible_cell)
-                  //console.log("Semental move 1: " + possible_cell);
               }  
               if(!back_right_stop &&  back_row!=null && (column_id+i)<9 && back_row[column_id+i]!=null &&(back_row[column_id+i].substr(0,1)=="0" || back_row[column_id+i].substr(0,1)=="1")){back_right_stop=true} 
             
@@ -873,7 +818,6 @@ export const Shogi = {
               if(!back_left_stop && back_row!=null && (column_id-i)>=0 && (back_row[column_id-i]==null || back_row[column_id-i].substr(0,1)=="0")){
                   let possible_cell = (row_id-i).toString().concat(column_id-i);
                   possible_cells.push(possible_cell)
-                  //console.log("Semental move 2: " + possible_cell);
               } 
               if(!back_left_stop && back_row!=null && (column_id-i)>=0 && back_row[column_id-i]!=null  &&  (back_row[column_id-i].substr(0,1)=="0" || back_row[column_id-i].substr(0,1)=="1")){back_left_stop=true} 
 
@@ -881,7 +825,6 @@ export const Shogi = {
               if(!front_right_stop && front_row!=null && (column_id+i)<9 && (front_row[column_id+i]==null || front_row[column_id+i].substr(0,1)=="0")){
                 let possible_cell = (row_id+i).toString().concat(column_id+i);
                 possible_cells.push(possible_cell)
-                //console.log("Semental move 3: " + possible_cell);
               } 
               if(!front_right_stop && front_row!=null && (column_id+i)<9 && front_row[column_id+i]!=null &&  (front_row[column_id+i].substr(0,1)=="0" || front_row[column_id+i].substr(0,1)=="1")){front_right_stop=true} 
 
@@ -889,7 +832,6 @@ export const Shogi = {
               if(!front_left_stop && front_row!=null && (column_id-i)>=0 && (front_row[column_id-i]==null || front_row[column_id-i].substr(0,1)=="0")){
                 let possible_cell = (row_id+i).toString().concat(column_id-i);
                 possible_cells.push(possible_cell)
-                //console.log("Semental move 4: " + possible_cell);
               } 
               if(!front_left_stop && front_row!=null && (column_id-i)>=0 && front_row[column_id-i]!=null &&   (front_row[column_id-i].substr(0,1)=="0" || front_row[column_id-i].substr(0,1)=="1")){front_left_stop=true} 
           }
@@ -898,26 +840,22 @@ export const Shogi = {
           if(row_id>0 && (row[column_id]==null || row[column_id].substr(0,1)=="0")){
             let possible_cell = (row_id-1).toString().concat(column_id);
             possible_cells.push(possible_cell)
-            //console.log("Semental move 1.2: " + possible_cell);
           }
           
           row = cells[row_id];
           if(column_id>0 && (row[column_id-1]==null || row[column_id-1].substr(0,1)=="0")){
             let possible_cell = (row_id).toString().concat(column_id-1);
             possible_cells.push(possible_cell)
-            //console.log("Semental move 1.4: " + possible_cell);
           }
           if(column_id<8 && (row[column_id+1]==null || row[column_id+1].substr(0,1)=="0")){
             let possible_cell = (row_id).toString().concat(column_id+1);
             possible_cells.push(possible_cell)
-            //console.log("Semental move 1.5: " + possible_cell);
           }
 
           row = cells[row_id+1];
           if(row_id<8 && (row[column_id]==null || row[column_id].substr(0,1)=="0")){
             let possible_cell = (row_id+1).toString().concat(column_id);
             possible_cells.push(possible_cell)
-            //console.log("Semental move 1.7: " + possible_cell);
           }
 
 
@@ -934,12 +872,10 @@ export const Shogi = {
                 if(!right_stop && (column_id-i)>=0 && (actual_row[column_id-i]==null || actual_row[column_id-i].substr(0,1)=="0")){
                   let possible_cell = row_id.toString().concat(column_id-i);
                   possible_cells.push(possible_cell)
-                  //console.log("Dragon move 1: " + possible_cell);
                 }  
                 if(!left_stop && (column_id+i)<=8 && (actual_row[column_id+i]==null || actual_row[column_id+i].substr(0,1)=="0") ){
                   let possible_cell = row_id.toString().concat(column_id+i);
                   possible_cells.push(possible_cell)
-                  //console.log("Dragon move 2: " + possible_cell);
                 } 
                 if(!right_stop && (column_id-i)>=0 && actual_row[column_id-i]!=null && (actual_row[column_id-i].substr(0,1)=="0" || actual_row[column_id-i].substr(0,1)=="1")){right_stop=true} 
                 if(!left_stop && (column_id+i)<=8 && actual_row[column_id+i]!=null && (actual_row[column_id+i].substr(0,1)=="0" || actual_row[column_id+i].substr(0,1)=="1")){left_stop=true} 
@@ -949,12 +885,10 @@ export const Shogi = {
                 if(!back_stop && (row_id-i)>=0 && (back_row[column_id]==null || back_row[column_id].substr(0,1)=="0")){
                   let possible_cell = (row_id-i).toString().concat(column_id);
                   possible_cells.push(possible_cell)
-                  //console.log("Dragon move 3: " + possible_cell);
                 }  
                 if(!front_stop && (row_id+i)<=8 && (front_row[column_id]==null || front_row[column_id].substr(0,1)=="0") ){
                   let possible_cell = (row_id+i).toString().concat(column_id);
                   possible_cells.push(possible_cell)
-                  //console.log("Dragon move 4: " + possible_cell);
                 } 
                 if(!back_stop && (row_id-i)>=0 && back_row[column_id]!=null &&  (back_row[column_id].substr(0,1)=="0" || back_row[column_id].substr(0,1)=="1")){back_stop=true} 
                 if(!front_stop && (row_id+i)<=8 && front_row[column_id]!=null && (front_row[column_id].substr(0,1)=="0" || front_row[column_id].substr(0,1)=="1")){front_stop=true} 
@@ -964,25 +898,21 @@ export const Shogi = {
           if(row_id>0 && column_id>0 && (row[column_id-1]==null || row[column_id-1].substr(0,1)=="0")){
             let possible_cell = (row_id-1).toString().concat(column_id-1);
             possible_cells.push(possible_cell)
-            //console.log("Dragon move 1.1: " + possible_cell);
           }
           
           if(row_id>0 && column_id<8 && (row[column_id+1]==null || row[column_id+1].substr(0,1)=="0")){
             let possible_cell = (row_id-1).toString().concat(column_id+1);
             possible_cells.push(possible_cell)
-            //console.log("Dragon move 1.2: " + possible_cell);
           }
 
           row = cells[row_id+1];
           if(row_id<8 && column_id<8 && (row[column_id+1]==null || row[column_id+1].substr(0,1)=="0")){
             let possible_cell = (row_id+1).toString().concat(column_id+1);
             possible_cells.push(possible_cell)
-            //console.log("Dragon move 1.4: " + possible_cell);
           }
           if(row_id<8 && column_id>0 && (row[column_id-1]==null || row[column_id-1].substr(0,1)=="0")){
             let possible_cell = (row_id+1).toString().concat(column_id-1);
             possible_cells.push(possible_cell)
-            //console.log("Dragon move 1.3: " + possible_cell);
           }
         }
   
@@ -1025,7 +955,6 @@ export const Shogi = {
       for(let j=0;j<9;j++){
         row = cells[j]
         piece = row[i]
-        //console.log("Voy por: " + i.toString() + " " + j.toString() + " y es " + piece + " y soy " + player)
         if(piece!=null && piece.substr(1,2)=="P" && piece.substr(0,1)==player){free=false;break;}
       }
       if(free){pawn_free_columns.push(i)}
@@ -1037,9 +966,7 @@ export const Shogi = {
     const G_clone = JSON.parse(JSON.stringify(G));
     var player = player_and_piece.substr(0,1)
     var player_piece = player_and_piece.substr(1,4)
-    //console.log("Player: " + player + " wants to move " + player_piece)
     let possible_cells = getPossibleCells(G_clone.cells,initial_row,initial_column,player_piece,player)
-    //console.log("Movimientos validos: " + possible_cells)
     var valid_move = false;
     var row = G_clone.cells[initial_row];
     var new_row = G_clone.cells[target_row];
@@ -1064,7 +991,6 @@ export const Shogi = {
             if(player=="0"){G_clone.sente_captured_pieces.push(target_piece)}
             else{G_clone.gote_captured_pieces.push(target_piece)}
         }
-        //console.log("Flag D. Movimiento realizado: -> fila actualizada: " + G_clone.cells[target_row] + " -> Nueva pieza: " + new_row[target_column])
         break;
       }
     }
@@ -1085,11 +1011,9 @@ export const Shogi = {
     let still_check = true        
       if(player=="0"){still_check = isCheck(G_clone,"1");  } 
       if(player=="1"){still_check = isCheck(G_clone,"0");  }
-      if(still_check){return false}   
-    //console.log("Flag F.3. Check: " + still_check)   
+      if(still_check){return false}    
     ////////////////////////////////////////////////////////////////    
     isCheck(G_clone,player)
-    //console.log("Flag G. Final: " + mmm)
     return true
   }
   function revivePieceToAvoidMate (G,target_row,target_column,player_and_piece){
@@ -1125,10 +1049,8 @@ export const Shogi = {
 
   export function movePiece (G, ctx, initial_row,initial_column, target_row,target_column,player_piece){
     /////////////////////////// MOVIMIENTO //////////////////////////
-    //console.log("Player: " + ctx.currentPlayer + " wants to move " + player_piece + " de " + initial_row+ " a " + target_row)
-    //console.log("Y de " + initial_column + " a " + target_column)
+
     let possible_cells = getPossibleCells(G.cells,initial_row,initial_column,player_piece,ctx.currentPlayer)
-    //console.log(possible_cells)
 
     var valid_move = false;
     var row = G.cells[initial_row];
@@ -1158,10 +1080,7 @@ export const Shogi = {
         break;
       }
     }
-    if(valid_move == false){alert("INVALIDO..."); 
-    console.log("Player: " + ctx.currentPlayer + " wants to move " + player_piece + " de " + initial_row+ " a " + target_row)
-    console.log("Y de " + initial_column + " a " + target_column)
-    return INVALID_MOVE}
+    if(valid_move == false){return INVALID_MOVE}
     /////////////////////////// MOVIMIENTO REY //////////////////////////
     if(player_piece=="KING"){
       if(ctx.currentPlayer=="0"){
@@ -1199,7 +1118,6 @@ export const Shogi = {
   export function  revivePiece (G, ctx, target_row,target_column,player_piece,highlight=null)  {
     /////////////////////////// MOVIMIENTO //////////////////////////
     let possible_cells = getPossibleRevive(G.cells,player_piece.substr(1,4),player_piece.substr(0,1))
-    console.log("pos: " + possible_cells)
     var valid_move = false;
     var new_row = G.cells[target_row];
 
@@ -1233,11 +1151,11 @@ export const Shogi = {
       if(ctx.currentPlayer=="1"){still_check = isCheck(G,"0")}
       if(still_check){return INVALID_MOVE}      
     ////////////////////////////////////////////////////////////////    
-    isCheck(G,ctx.currentPlayer)
     if(highlight!=null){highlight.className = "cell";}
+    return G;
   }
   //////////------END FUNCTIONS---------------/////////
-  function isCheck(G,player){
+  export function isCheck(G,player){
       let players_piece;
       let possible_cells;
       let check = false
@@ -1259,14 +1177,13 @@ export const Shogi = {
       }
       return check
   }
-  function isCheckMate(G,ctx){
+  export function isCheckMate(G,ctx){
     var save_mate = false
     let possible_cells;
     var is_check
     //Primero vemos si hay jaque, según del jugador
     if(ctx.currentPlayer=="1"){is_check = isCheck(G,"1")}
     else{is_check = isCheck(G,"0")}
-    //console.log("Lets check the Mate..is Check??: " + is_check + " and im " + ctx.currentPlayer)
     //Si hay jaque, exploramos todas las fichas del otro jugador para ver si hay algún movimiento que evite el jaque mate
     if(is_check){
       for(let i=0;i<G.cells.length;i++){
@@ -1301,7 +1218,7 @@ export const Shogi = {
     //Según el análisis, devolvemos true para JAQUE MATE y false si no hay JAQUE MATE
     if(is_check){
       if(save_mate){return false}
-      else{console.log("MATE");return true}
+      else{return true}
     }
     else{return false}   
   }

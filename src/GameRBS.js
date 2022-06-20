@@ -6,63 +6,17 @@ var NodeRules = require('node-rules');
 var RuleEngine = require('node-rules');
 
 ///Variables
-var G
 var state
 
-//////////FACTS///////////////////
 
-
-//////////RULES/////////////////
-var rules2 = [
-        {///////playBoardPiece
-            "condition": function(R) {	
-                console.log("Rule: playBoard")
-                console.log(this);
-                //var state = require('./ShogiRBS.js')
-                //var G = state.G
-                var possible_cells = getPossibleCells(G.cells,parseInt(this.row),parseInt(this.column),this.piece,this.player)
-                console.log(G);
-                console.log(possible_cells);
-                R.when(possible_cells!="" && this.player==state.ctx.currentPlayer && this.isHand=="0");
-            },
-            "consequence": function(R) {
-                console.log("Rule activated: playBoard")
-                var state = require('./GameRBS.js')
-                var G = state.G
-                var possible_cells = getPossibleCells(G.cells,parseInt(this.row),parseInt(this.column),this.piece,this.player)
-                console.log(possible_cells)
-                var rand = parseInt(Math.random() * (possible_cells.length - 0) + 0);
-                var new_position = possible_cells[rand]
-                var row = new_position.substr(0,1)
-                var column = new_position.substr(1,1)
-                //this.result = true;
-                this.reason = this.row+this.column+row+column+this.piece
-                this.move = row+column
-                //console.log(this);
-                R.next();
-            }
-        }
-
-];
 ////////////////////////////////////////////////////////////////////////////////////////
 /////submit of rules////
-var basic_rules = require('./rules/BasicRules.js')
 
 /* Run engine for each fact */
 export async function executeEngine(gameState,rules,fn){
-    var ruleSet = [rules]
-    var R = new RuleEngine(basic_rules,{ignoreFactChanges:true});
-    console.log(rules)
-    console.log(ruleSet)
-    console.log(basic_rules)
+    var R = new RuleEngine(rules,{ignoreFactChanges:true});
     state = gameState
-    //module.exports = state
-    //console.log("Engine: ")  
-    //console.log(state.G.cells)  
-    
-    //console.log("GenshiBoushin: ")
-    //console.log(rules.GenshiBougin)
-    
+
     var result_facts =  function func(){
         return new Promise((resolve ,reject)=>{
             submitFacts(gameState,function(result){
@@ -70,35 +24,35 @@ export async function executeEngine(gameState,rules,fn){
           }); 
         });
     };  
-    let facts = await result_facts();
-    //console.log("facts: " )  
-    //console.log(facts)  
+    let facts = await result_facts(); 
     let moves = []
     let final_moves = []
-    //console.log("facts: " + facts)  
         for (let fact of facts) {
-            //console.log("Voy por: " + fact.piece)
             let m = await new Promise(resolve => 
                 R.execute(fact, function (data) {
-                    if (data.move!=null) {
-                        //console.log("Movimiento: " + data.move)
-                        let move_info = []                  
-                        move_info.push(data.row)
-                        move_info.push(data.column)
-                        move_info.push(data.move)
-                        move_info.push(data.piece)
-                        move_info.push(data.isHand)
-                        move_info.push(data.player)
-                        moves.push(move_info)
-                        resolve(move_info)   
+                    if (data.moves[0]!=null) {
+                        //console.log("Movimiento:" + data.moves + " Prioridad: " + data.priorities)
+                        moves = []
+                        for (let [index ,mv] of data.moves.entries()){
+                            var move_info = []                  
+                            move_info.push(data.row)
+                            move_info.push(data.column)
+                            move_info.push(mv)
+                            move_info.push(data.piece)
+                            move_info.push(data.isHand)
+                            move_info.push(data.priorities[index])
+                            moves.push(move_info)
+                            resolve(moves) 
+                        }  
+                        
                     } 
                     else{resolve("")}
                 })
             );
             
-            if(m!=""){final_moves.push(m)}  
+            if(m!=""){for(let mv of m){final_moves.push(mv)}}
         }
-    console.log("Final moves: " + final_moves)
+    //console.log("Final moves: " + final_moves)
     fn(final_moves)      
 }
 /////submit of facts////
@@ -121,14 +75,14 @@ function submitFacts(state,fn){
     for(let i=0;i<G.sente_captured_pieces.length;i++){      
         player_and_piece = G.sente_captured_pieces[i]
         var piece = player_and_piece.substr(0,4)
-        var fact = createFact(state,piece,0,0,"0",1);
+        var fact = createReviveFact(state,piece,0,0,"0",1);
         facts.push(fact)
           
     }
     for(let i=0;i<G.gote_captured_pieces.length;i++){      
         player_and_piece = G.gote_captured_pieces[i]
         var piece = player_and_piece.substr(0,4)
-        var fact = createFact(state,piece,0,0,"1",1);
+        var fact = createReviveFact(state,piece,0,0,"1",1);
         facts.push(fact)
           
     }
@@ -139,6 +93,8 @@ function submitFacts(state,fn){
 function createFact(state,piece_type,row_id,column_id,player_id,hand){
     var factName = player_id.concat(piece_type).concat(row_id.toString()).concat(column_id.toString()).concat(hand.toString())
     var value = getValueOfPiece(piece_type,hand)
+    var factMoves = []
+    var factPriorities = []
     var factName = {
         "piece": piece_type.toString(),
         "player": player_id.toString(),
@@ -147,7 +103,28 @@ function createFact(state,piece_type,row_id,column_id,player_id,hand){
         "isHand" : hand.toString(),
         "value" : value.toString(),
         "state" : state,
-        "possibleMoves" : getPossibleCells(state.G.cells,parseInt(row_id),parseInt(column_id),piece_type,player_id)
+        "possibleMoves" : getPossibleCells(state.G.cells,parseInt(row_id),parseInt(column_id),piece_type,player_id),
+        "moves" : factMoves,
+        "priorities" : factPriorities
+    }
+    return factName
+}
+function createReviveFact(state,piece_type,row_id,column_id,player_id,hand){
+    var factName = player_id.concat(piece_type).concat(row_id.toString()).concat(column_id.toString()).concat(hand.toString())
+    var value = getValueOfPiece(piece_type,hand)
+    var factMoves = []
+    var factPriorities = []
+    var factName = {
+        "piece": piece_type.toString(),
+        "player": player_id.toString(),
+        "row": row_id.toString(),
+        "column" : column_id.toString(),
+        "isHand" : hand.toString(),
+        "value" : value.toString(),
+        "state" : state,
+        "possibleMoves" : getPossibleRevive(state.G.cells,piece_type,player_id),
+        "moves" : factMoves,
+        "priorities" : factPriorities
     }
     return factName
 }
