@@ -51,7 +51,8 @@ export async function executeEngine(gameState,rules,fn){
             );
             
             if(m!=""){for(let mv of m){final_moves.push(mv)}}
-        }
+
+        }  
     //console.log("Final moves: " + final_moves)
     fn(final_moves)      
 }

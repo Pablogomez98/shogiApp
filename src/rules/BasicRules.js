@@ -1,32 +1,6 @@
 import {getPossibleCells,getPossibleRevive, movePiece,revivePiece, isCheck, isCheckMate} from '../Game.js'
 
 var BasicRules = [
-    {///////moveRandom
-        "priority": 5,
-        "condition": function(R) {	
-            //console.log("Rule: moveRandom")
-            R.when(
-                this.possibleMoves!="" 
-                && this.player==this.state.ctx.currentPlayer 
-                && this.isHand=="0"
-                );
-        },
-        "consequence": function(R) {
-            //console.log("Rule activated: moveRandom")
-            //var state = require('./ShogiRBS.js')
-            //var G = state.G
-            var rand = parseInt(Math.random() * (this.possibleMoves.length - 0) + 0);
-            var new_position = this.possibleMoves[rand]
-            var row = new_position.substr(0,1)
-            var column = new_position.substr(1,1)
-            //this.result = true;
-           // this.priorities.push(0)
-           // this.moves.push(row+column)  
-            //console.log(this);
-            R.next();
-        }
-    },
-
     {///////Capture
         "priority": 5,
         "condition": function(R) {	
@@ -55,7 +29,7 @@ var BasicRules = [
             //console.log(thread)
             //console.log(row)
             //console.log(column)
-            this.priorities.push(0)
+            this.priorities.push(5)
             this.moves.push(row+column)
             //console.log(this);
             R.next();
@@ -173,6 +147,7 @@ var BasicRules = [
             R.next();
         }
     },*/
+  
     {///////Scape
         "priority": 5,
         "condition": function(R) {	
@@ -202,7 +177,7 @@ var BasicRules = [
                     var column = move.substr(1,1)
                     //console.log(row+column)
                     this.moves.push(row+column)
-                    this.priorities.push(this.value)
+                    this.priorities.push(2)
                 }
                 }   
             }
@@ -235,6 +210,34 @@ var BasicRules = [
                 this.priorities.push(1)
             }
             
+            R.next();
+        }
+    },
+    {///////moveRandom
+        "priority": 0,
+        "condition": function(R) {	
+            //console.log("Rule: moveRandom")
+            R.when(
+                this.possibleMoves!="" 
+                && this.player==this.state.ctx.currentPlayer 
+                && this.isHand=="0"
+                && this.moves ==""
+                );
+        },
+        "consequence": function(R) {
+            console.log("Rule activated: moveRandom")
+            //var state = require('./ShogiRBS.js')
+            //var G = state.G
+            var rand = parseInt(Math.random() * (this.possibleMoves.length - 0) + 0);
+            var new_position = this.possibleMoves[rand]
+            var row = new_position.substr(0,1)
+            var column = new_position.substr(1,1)
+            //this.result = true;
+            this.priorities.push(-5)
+            this.moves.push(row+column)  
+            console.log(this);
+            console.log(row+column)
+            //console.log(this);
             R.next();
         }
     },

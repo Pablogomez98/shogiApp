@@ -4,6 +4,7 @@ var StrategyRules = [
     {///////rook strategy
         "condition": function(R) {	
             //console.log("Rule: define rook strategy")
+            console.log(this.state.ctx.currentPlayer)
             R.when(
                 this.rook == null
                 && this.player==this.state.ctx.currentPlayer
@@ -57,9 +58,9 @@ var StrategyRules = [
         "condition": function(R) {	
             //console.log("Rule: Yagura Castle")
             R.when(
-                this.castle == null
+                (this.castle == null || this.castle == "Yagura")
                 && this.rook == "static"
-                && this.oposing_rook == "static"
+                && (this.oposing_rook == "static" || this.oposing_rook == "null")
                 && this.player==this.state.ctx.currentPlayer
                 );
         },
@@ -68,7 +69,7 @@ var StrategyRules = [
             let ruleSet = this.strategy
             ruleSet.push("Yagura")
             this.strategy = ruleSet
-            //this.castle = "Yagura"
+            this.castle = "Yagura"
             R.next();
         }
     },
@@ -77,7 +78,7 @@ var StrategyRules = [
         "condition": function(R) {	
             //console.log("Rule: Boat Castle")
             R.when(
-                this.castle == null
+                (this.castle == null || this.castle == "Boat")
                 && this.rook == "static"
                 && this.oposing_rook == "ranging"
                 && this.player==this.state.ctx.currentPlayer
@@ -88,7 +89,7 @@ var StrategyRules = [
             let ruleSet = this.strategy
             ruleSet.push("Boat")
             this.strategy = ruleSet
-            //this.castle = "Boat"
+            this.castle = "Boat"
             R.next();
            
         }
@@ -110,6 +111,27 @@ var StrategyRules = [
             ruleSet.push("Mino")
             this.strategy = ruleSet
             //this.castle = "Mino"
+            R.next();
+        }
+    },
+
+    {///////PeerlesGold Castle set
+
+        "condition": function(R) {	
+            //console.log("Rule: Mino Castle")
+            R.when(
+                (this.castle == null || this.castle == "PeerlessGold")
+                && this.rook == "ranging"
+                && this.oposing_rook == "ranging"
+                && this.player==this.state.ctx.currentPlayer
+                );
+        },
+        "consequence": function(R) {
+            //console.log("Rule activated: Mino Castle")
+            let ruleSet = this.strategy
+            ruleSet.push("PeerlessGold")
+            this.strategy = ruleSet
+            this.castle = "PeerlessGold"
             R.next();
         }
     },

@@ -25923,6 +25923,7 @@ var StrategyRules = [{
   ///////rook strategy
   "condition": function (R) {
     //console.log("Rule: define rook strategy")
+    console.log(this.state.ctx.currentPlayer);
     R.when(this.rook == null && this.player == this.state.ctx.currentPlayer && this.phase == 0);
   },
   "consequence": function (R) {
@@ -25968,28 +25969,28 @@ var StrategyRules = [{
   ///////Yagura Castle
   "condition": function (R) {
     //console.log("Rule: Yagura Castle")
-    R.when(this.castle == null && this.rook == "static" && this.oposing_rook == "static" && this.player == this.state.ctx.currentPlayer);
+    R.when((this.castle == null || this.castle == "Yagura") && this.rook == "static" && (this.oposing_rook == "static" || this.oposing_rook == "null") && this.player == this.state.ctx.currentPlayer);
   },
   "consequence": function (R) {
     //console.log("Rule activated: Yagura Castle")
     let ruleSet = this.strategy;
     ruleSet.push("Yagura");
-    this.strategy = ruleSet; //this.castle = "Yagura"
-
+    this.strategy = ruleSet;
+    this.castle = "Yagura";
     R.next();
   }
 }, {
   ///////Boat Castle set
   "condition": function (R) {
     //console.log("Rule: Boat Castle")
-    R.when(this.castle == null && this.rook == "static" && this.oposing_rook == "ranging" && this.player == this.state.ctx.currentPlayer);
+    R.when((this.castle == null || this.castle == "Boat") && this.rook == "static" && this.oposing_rook == "ranging" && this.player == this.state.ctx.currentPlayer);
   },
   "consequence": function (R) {
     //console.log("Rule activated: Boat Castle")
     let ruleSet = this.strategy;
     ruleSet.push("Boat");
-    this.strategy = ruleSet; //this.castle = "Boat"
-
+    this.strategy = ruleSet;
+    this.castle = "Boat";
     R.next();
   }
 }, {
@@ -26004,6 +26005,20 @@ var StrategyRules = [{
     ruleSet.push("Mino");
     this.strategy = ruleSet; //this.castle = "Mino"
 
+    R.next();
+  }
+}, {
+  ///////PeerlesGold Castle set
+  "condition": function (R) {
+    //console.log("Rule: Mino Castle")
+    R.when((this.castle == null || this.castle == "PeerlessGold") && this.rook == "ranging" && this.oposing_rook == "ranging" && this.player == this.state.ctx.currentPlayer);
+  },
+  "consequence": function (R) {
+    //console.log("Rule activated: Mino Castle")
+    let ruleSet = this.strategy;
+    ruleSet.push("PeerlessGold");
+    this.strategy = ruleSet;
+    this.castle = "PeerlessGold";
     R.next();
   }
 }];
@@ -26390,12 +26405,17 @@ var Yagura = [{
   "priority": 10,
   "condition": function (R) {
     var notPositioned = false;
+    var possible = false;
 
     if (this.piece == "P" && (this.column == 2 && this.row == 6 && this.player == "1" || this.column == 6 && this.row == 2 && this.player == "0")) {
       notPositioned = true;
     }
 
-    R.when(notPositioned && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+    if (this.possibleMoves.includes("36") && this.player == "0" || this.possibleMoves.includes("52") && this.player == "1") {
+      possible = true;
+    }
+
+    R.when(notPositioned && possible && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
   },
   "consequence": function (R) {
     var new_position;
@@ -26418,12 +26438,17 @@ var Yagura = [{
   "priority": 9,
   "condition": function (R) {
     var notPositioned = false;
+    var possible = false;
 
     if (this.piece == "S" && (this.column == 2 && this.row == 8 && this.player == "1" || this.column == 6 && this.row == 0 && this.player == "0")) {
       notPositioned = true;
     }
 
-    R.when(notPositioned && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+    if (this.possibleMoves.includes("15") && this.player == "0" || this.possibleMoves.includes("73") && this.player == "1") {
+      possible = true;
+    }
+
+    R.when(notPositioned && possible && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
   },
   "consequence": function (R) {
     //console.log("Rule activated: Yagura silver 1")
@@ -26447,12 +26472,17 @@ var Yagura = [{
   "condition": function (R) {
     //console.log("Rule: Yagura silver 2")
     var notPositioned = false;
+    var possible = false;
 
     if (this.piece == "S" && (this.column == 3 && this.row == 7 && this.player == "1" || this.column == 5 && this.row == 1 && this.player == "0")) {
       notPositioned = true;
     }
 
-    R.when(notPositioned && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+    if (this.possibleMoves.includes("26") && this.player == "0" || this.possibleMoves.includes("62") && this.player == "1") {
+      possible = true;
+    }
+
+    R.when(notPositioned && possible && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
   },
   "consequence": function (R) {
     //console.log("Rule activated: Yagura silver 2")
@@ -26477,6 +26507,7 @@ var Yagura = [{
   "condition": function (R) {
     //console.log("Rule: Yagura silver 2")
     var notPositioned = false;
+    var possible = false;
     var sente_row = this.state.G.cells[1];
     var gote_row = this.state.G.cells[7]; //console.log(sente_row[7])
 
@@ -26484,7 +26515,11 @@ var Yagura = [{
       notPositioned = true;
     }
 
-    R.when(notPositioned && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+    if (this.possibleMoves.includes("17") && this.player == "0" || this.possibleMoves.includes("71") && this.player == "1") {
+      possible = true;
+    }
+
+    R.when(notPositioned && possible && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
   },
   "consequence": function (R) {
     //console.log("Rule activated: Yagura silver 2")
@@ -26508,12 +26543,17 @@ var Yagura = [{
   "condition": function (R) {
     //console.log("Rule: Yagura silver 2")
     var notPositioned = false;
+    var possible = false;
 
     if (this.piece == "S" && (this.column == 1 && this.row == 7 && this.player == "1" || this.column == 7 && this.row == 1 && this.player == "0")) {
       notPositioned = true;
     }
 
-    R.when(notPositioned && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+    if (this.possibleMoves.includes("26") && this.player == "0" || this.possibleMoves.includes("62") && this.player == "1") {
+      possible = true;
+    }
+
+    R.when(notPositioned && possible && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
   },
   "consequence": function (R) {
     //console.log("Rule activated: Yagura silver 2")
@@ -26537,12 +26577,17 @@ var Yagura = [{
   "priority": 7,
   "condition": function (R) {
     var notPositioned = false;
+    var possible = false;
 
     if (this.piece == "P" && (this.column == 4 && this.row == 6 && this.player == "1" || this.column == 4 && this.row == 2 && this.player == "0")) {
       notPositioned = true;
     }
 
-    R.when(notPositioned && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+    if (this.possibleMoves.includes("34") && this.player == "0" || this.possibleMoves.includes("54") && this.player == "1") {
+      possible = true;
+    }
+
+    R.when(notPositioned && possible && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
   },
   "consequence": function (R) {
     //console.log("Rule activated: Yagura pawn")
@@ -26565,12 +26610,17 @@ var Yagura = [{
   "priority": 7,
   "condition": function (R) {
     var notPositioned = false;
+    var possible = false;
 
     if (this.piece == "P" && (this.column == 3 && this.row == 6 && this.player == "1" || this.column == 5 && this.row == 2 && this.player == "0")) {
       notPositioned = true;
     }
 
-    R.when(notPositioned && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+    if (this.possibleMoves.includes("35") && this.player == "0" || this.possibleMoves.includes("53") && this.player == "1") {
+      possible = true;
+    }
+
+    R.when(notPositioned && possible && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
   },
   "consequence": function (R) {
     //console.log("Rule activated: Yagura pawn")
@@ -26593,12 +26643,17 @@ var Yagura = [{
   "priority": 6,
   "condition": function (R) {
     var notPositioned = false;
+    var possible = false;
 
     if (this.piece == "G" && (this.column == 5 && this.row == 8 && this.player == "1" || this.column == 3 && this.row == 0 && this.player == "0")) {
       notPositioned = true;
     }
 
-    R.when(notPositioned && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+    if (this.possibleMoves.includes("14") && this.player == "0" || this.possibleMoves.includes("74") && this.player == "1") {
+      possible = true;
+    }
+
+    R.when(notPositioned && possible && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
   },
   "consequence": function (R) {
     //console.log("Rule activated: Yagura golden 1")
@@ -26622,12 +26677,17 @@ var Yagura = [{
   "priority": 4,
   "condition": function (R) {
     var notPositioned = false;
+    var possible = false;
 
     if (this.piece == "G" && (this.column == 3 && this.row == 8 && this.player == "1" || this.column == 5 && this.row == 0 && this.player == "0")) {
       notPositioned = true;
     }
 
-    R.when(notPositioned && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+    if (this.possibleMoves.includes("16") && this.player == "0" || this.possibleMoves.includes("72") && this.player == "1") {
+      possible = true;
+    }
+
+    R.when(notPositioned && possible && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
   },
   "consequence": function (R) {
     //console.log("Rule activated: Yagura golden 2")
@@ -26651,12 +26711,17 @@ var Yagura = [{
   "priority": 7,
   "condition": function (R) {
     var notPositioned = false;
+    var possible = false;
 
     if (this.piece == "B" && (this.column == 1 && this.row == 7 && this.player == "1" || this.column == 7 && this.row == 1 && this.player == "0")) {
       notPositioned = true;
     }
 
-    R.when(notPositioned && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+    if (this.possibleMoves.includes("06") && this.player == "0" || this.possibleMoves.includes("82") && this.player == "1") {
+      possible = true;
+    }
+
+    R.when(notPositioned && possible && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
   },
   "consequence": function (R) {
     //console.log("Rule activated: Yagura pawn")
@@ -26679,6 +26744,7 @@ var Yagura = [{
   "priority": 7,
   "condition": function (R) {
     var notPositioned = false;
+    var possible = false;
     var sente_row = this.state.G.cells[1];
     var gote_row = this.state.G.cells[7];
 
@@ -26686,7 +26752,11 @@ var Yagura = [{
       notPositioned = true;
     }
 
-    R.when(notPositioned && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+    if (this.possibleMoves.includes("15") && this.player == "0" || this.possibleMoves.includes("73") && this.player == "1") {
+      possible = true;
+    }
+
+    R.when(notPositioned && possible && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
   },
   "consequence": function (R) {
     //console.log("Rule activated: Yagura pawn")
@@ -26709,6 +26779,7 @@ var Yagura = [{
   "priority": 6,
   "condition": function (R) {
     var notPositioned = false;
+    var possible = false;
     var sente_row = this.state.G.cells[0];
     var gote_row = this.state.G.cells[8];
 
@@ -26716,7 +26787,11 @@ var Yagura = [{
       notPositioned = true;
     }
 
-    R.when(notPositioned && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+    if (this.possibleMoves.includes("05") && this.player == "0" || this.possibleMoves.includes("83") && this.player == "1") {
+      possible = true;
+    }
+
+    R.when(notPositioned && possible && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
   },
   "consequence": function (R) {
     //console.log("Rule activated: Yagura pawn")
@@ -26739,12 +26814,17 @@ var Yagura = [{
   "priority": 6,
   "condition": function (R) {
     var notPositioned = false;
+    var possible = false;
 
     if (this.piece == "G" && (this.column == 4 && this.row == 7 && this.player == "1" || this.column == 4 && this.row == 1 && this.player == "0")) {
       notPositioned = true;
     }
 
-    R.when(notPositioned && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+    if (this.possibleMoves.includes("25") && this.player == "0" || this.possibleMoves.includes("63") && this.player == "1") {
+      possible = true;
+    }
+
+    R.when(notPositioned && possible && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
   },
   "consequence": function (R) {
     //console.log("Rule activated: Yagura pawn")
@@ -26767,6 +26847,7 @@ var Yagura = [{
   "priority": 5,
   "condition": function (R) {
     var notPositioned = false;
+    var possible = false;
     var sente_row = this.state.G.cells[1];
     var gote_row = this.state.G.cells[7];
 
@@ -26774,7 +26855,11 @@ var Yagura = [{
       notPositioned = true;
     }
 
-    R.when(notPositioned && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+    if (this.possibleMoves.includes("16") && this.player == "0" || this.possibleMoves.includes("72") && this.player == "1") {
+      possible = true;
+    }
+
+    R.when(notPositioned && possible && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
   },
   "consequence": function (R) {
     //console.log("Rule activated: Yagura pawn")
@@ -26797,6 +26882,7 @@ var Yagura = [{
   "priority": 5,
   "condition": function (R) {
     var notPositioned = false;
+    var possible = false;
     var sente_row = this.state.G.cells[1];
     var gote_row = this.state.G.cells[7];
     var sente_row_bishop = this.state.G.cells[0];
@@ -26806,7 +26892,11 @@ var Yagura = [{
       notPositioned = true;
     }
 
-    R.when(notPositioned && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+    if (this.possibleMoves.includes("06") && this.player == "0" || this.possibleMoves.includes("82") && this.player == "1") {
+      possible = true;
+    }
+
+    R.when(notPositioned && possible && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
   },
   "consequence": function (R) {
     //console.log("Rule activated: Yagura pawn")
@@ -26829,12 +26919,17 @@ var Yagura = [{
   "priority": 5,
   "condition": function (R) {
     var notPositioned = false;
+    var possible = false;
 
     if (this.piece == "KING" && (this.column == 2 && this.row == 7 && this.player == "1" || this.column == 6 && this.row == 1 && this.player == "0")) {
       notPositioned = true;
     }
 
-    R.when(notPositioned && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+    if (this.possibleMoves.includes("17") && this.player == "0" || this.possibleMoves.includes("71") && this.player == "1") {
+      possible = true;
+    }
+
+    R.when(notPositioned && possible && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
   },
   "consequence": function (R) {
     //console.log("Rule activated: Yagura pawn")
@@ -26857,12 +26952,13 @@ var Yagura = [{
   "priority": 5,
   "condition": function (R) {
     var notPositioned = false;
+    var possible = false;
 
     if (this.piece == "KING" && (this.column == 2 && this.row == 8 && this.player == "1" || this.column == 6 && this.row == 0 && this.player == "0")) {
       notPositioned = true;
     }
 
-    R.when(notPositioned && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+    R.when(notPositioned && possible && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
   },
   "consequence": function (R) {
     //console.log("Rule activated: Yagura pawn")
@@ -26891,12 +26987,17 @@ var Boat = [//////////////10
   "priority": 10,
   "condition": function (R) {
     var notPositioned = false;
+    var possible = false;
 
     if (this.piece == "P" && (this.column == 2 && this.row == 6 && this.player == "1" || this.column == 6 && this.row == 2 && this.player == "0")) {
       notPositioned = true;
     }
 
-    R.when(notPositioned && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+    if (this.possibleMoves.includes("36") && this.player == "0" || this.possibleMoves.includes("52") && this.player == "1") {
+      possible = true;
+    }
+
+    R.when(notPositioned && possible && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
   },
   "consequence": function (R) {
     var new_position;
@@ -26919,12 +27020,19 @@ var Boat = [//////////////10
   "priority": 9,
   "condition": function (R) {
     var notPositioned = false;
+    var possible = false;
 
     if (this.piece == "KING" && (this.column == 4 && this.row == 8 && this.player == "1" || this.column == 4 && this.row == 0 && this.player == "0")) {
       notPositioned = true;
     }
 
-    R.when(notPositioned && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+    var possible = false;
+
+    if (this.possibleMoves.includes("15") && this.player == "0" || this.possibleMoves.includes("73") && this.player == "1") {
+      possible = true;
+    }
+
+    R.when(notPositioned && possible && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
   },
   "consequence": function (R) {
     //console.log("Rule activated: Yagura pawn")
@@ -26947,12 +27055,17 @@ var Boat = [//////////////10
   "priority": 9,
   "condition": function (R) {
     var notPositioned = false;
+    var possible = false;
 
     if (this.piece == "KING" && (this.column == 3 && this.row == 7 && this.player == "1" || this.column == 5 && this.row == 1 && this.player == "0")) {
       notPositioned = true;
     }
 
-    R.when(notPositioned && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+    if (this.possibleMoves.includes("16") && this.player == "0" || this.possibleMoves.includes("72") && this.player == "1") {
+      possible = true;
+    }
+
+    R.when(notPositioned && possible && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
   },
   "consequence": function (R) {
     //console.log("Rule activated: Yagura pawn")
@@ -26976,12 +27089,17 @@ var Boat = [//////////////10
   "priority": 8,
   "condition": function (R) {
     var notPositioned = false;
+    var possible = false;
 
     if (this.piece == "G" && (this.column == 5 && this.row == 8 && this.player == "1" || this.column == 3 && this.row == 0 && this.player == "0")) {
       notPositioned = true;
     }
 
-    R.when(notPositioned && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+    if (this.possibleMoves.includes("14") && this.player == "0" || this.possibleMoves.includes("74") && this.player == "1") {
+      possible = true;
+    }
+
+    R.when(notPositioned && possible && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
   },
   "consequence": function (R) {
     //console.log("Rule activated: Yagura golden 1")
@@ -27005,12 +27123,17 @@ var Boat = [//////////////10
   "priority": 8,
   "condition": function (R) {
     var notPositioned = false;
+    var possible = false;
 
     if (this.piece == "P" && (this.column == 4 && this.row == 6 && this.player == "1" || this.column == 4 && this.row == 2 && this.player == "0")) {
       notPositioned = true;
     }
 
-    R.when(notPositioned && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+    if (this.possibleMoves.includes("34") && this.player == "0" || this.possibleMoves.includes("54") && this.player == "1") {
+      possible = true;
+    }
+
+    R.when(notPositioned && possible && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
   },
   "consequence": function (R) {
     //console.log("Rule activated: Yagura pawn")
@@ -27033,12 +27156,17 @@ var Boat = [//////////////10
   "priority": 8,
   "condition": function (R) {
     var notPositioned = false;
+    var possible = false;
 
     if (this.piece == "P" && (this.column == 0 && this.row == 6 && this.player == "1" || this.column == 8 && this.row == 2 && this.player == "0")) {
       notPositioned = true;
     }
 
-    R.when(notPositioned && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+    if (this.possibleMoves.includes("38") && this.player == "0" || this.possibleMoves.includes("50") && this.player == "1") {
+      possible = true;
+    }
+
+    R.when(notPositioned && possible && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
   },
   "consequence": function (R) {
     //console.log("Rule activated: Yagura pawn")
@@ -27067,12 +27195,17 @@ var Mino = [////////////// 10
   "priority": 10,
   "condition": function (R) {
     var notPositioned = false;
+    var possible = false;
 
     if (this.piece == "P" && (this.column == 3 && this.row == 6 && this.player == "1" || this.column == 5 && this.row == 2 && this.player == "0")) {
       notPositioned = true;
     }
 
-    R.when(notPositioned && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+    if (this.possibleMoves.includes("35") && this.player == "0" || this.possibleMoves.includes("53") && this.player == "1") {
+      possible = true;
+    }
+
+    R.when(notPositioned && possible && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
   },
   "consequence": function (R) {
     var new_position;
@@ -27095,12 +27228,17 @@ var Mino = [////////////// 10
   "priority": 9,
   "condition": function (R) {
     var notPositioned = false;
+    var possible = false;
 
     if (this.piece == "P" && (this.column == 2 && this.row == 6 && this.player == "1" || this.column == 6 && this.row == 2 && this.player == "0")) {
       notPositioned = true;
     }
 
-    R.when(notPositioned && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+    if (this.possibleMoves.includes("36") && this.player == "0" || this.possibleMoves.includes("52") && this.player == "1") {
+      possible = true;
+    }
+
+    R.when(notPositioned && possible && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
   },
   "consequence": function (R) {
     var new_position;
@@ -27122,12 +27260,17 @@ var Mino = [////////////// 10
   "priority": 9,
   "condition": function (R) {
     var notPositioned = false;
+    var possible = false;
 
     if (this.piece == "B" && (this.column == 1 && this.row == 7 && this.player == "1" || this.column == 7 && this.row == 1 && this.player == "0")) {
       notPositioned = true;
     }
 
-    R.when(notPositioned && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+    if (this.possibleMoves.includes("26") && this.player == "0" || this.possibleMoves.includes("62") && this.player == "1") {
+      possible = true;
+    }
+
+    R.when(notPositioned && possible && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
   },
   "consequence": function (R) {
     //console.log("Rule activated: Yagura pawn")
@@ -27151,12 +27294,17 @@ var Mino = [////////////// 10
   "priority": 8,
   "condition": function (R) {
     var notPositioned = false;
+    var possible = false;
 
     if (this.piece == "S" && (this.column == 2 && this.row == 8 && this.player == "1" || this.column == 6 && this.row == 0 && this.player == "0")) {
       notPositioned = true;
     }
 
-    R.when(notPositioned && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+    if (this.possibleMoves.includes("16") && this.player == "0" || this.possibleMoves.includes("72") && this.player == "1") {
+      possible = true;
+    }
+
+    R.when(notPositioned && possible && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
   },
   "consequence": function (R) {
     //console.log("Rule activated: Yagura silver 1")
@@ -27179,12 +27327,17 @@ var Mino = [////////////// 10
   "priority": 8,
   "condition": function (R) {
     var notPositioned = false;
+    var possible = false;
 
     if (this.piece == "KING" && (this.column == 4 && this.row == 8 && this.player == "1" || this.column == 4 && this.row == 0 && this.player == "0")) {
       notPositioned = true;
     }
 
-    R.when(notPositioned && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+    if (this.possibleMoves.includes("13") && this.player == "0" || this.possibleMoves.includes("75") && this.player == "1") {
+      possible = true;
+    }
+
+    R.when(notPositioned && possible && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
   },
   "consequence": function (R) {
     //console.log("Rule activated: Yagura pawn")
@@ -27207,12 +27360,17 @@ var Mino = [////////////// 10
   "priority": 8,
   "condition": function (R) {
     var notPositioned = false;
+    var possible = false;
 
     if (this.piece == "KING" && (this.column == 5 && this.row == 7 && this.player == "1" || this.column == 3 && this.row == 1 && this.player == "0")) {
       notPositioned = true;
     }
 
-    R.when(notPositioned && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+    if (this.possibleMoves.includes("12") && this.player == "0" || this.possibleMoves.includes("76") && this.player == "1") {
+      possible = true;
+    }
+
+    R.when(notPositioned && possible && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
   },
   "consequence": function (R) {
     //console.log("Rule activated: Yagura pawn")
@@ -27235,12 +27393,17 @@ var Mino = [////////////// 10
   "priority": 8,
   "condition": function (R) {
     var notPositioned = false;
+    var possible = false;
 
     if (this.piece == "KING" && (this.column == 6 && this.row == 7 && this.player == "1" || this.column == 2 && this.row == 1 && this.player == "0")) {
       notPositioned = true;
     }
 
-    R.when(notPositioned && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+    if (this.possibleMoves.includes("11") && this.player == "0" || this.possibleMoves.includes("77") && this.player == "1") {
+      possible = true;
+    }
+
+    R.when(notPositioned && possible && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
   },
   "consequence": function (R) {
     //console.log("Rule activated: Yagura pawn")
@@ -27264,12 +27427,17 @@ var Mino = [////////////// 10
   "priority": 7,
   "condition": function (R) {
     var notPositioned = false;
+    var possible = false;
 
     if (this.piece == "S" && (this.column == 6 && this.row == 8 && this.player == "1" || this.column == 2 && this.row == 0 && this.player == "0")) {
       notPositioned = true;
     }
 
-    R.when(notPositioned && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+    if (this.possibleMoves.includes("12") && this.player == "0" || this.possibleMoves.includes("76") && this.player == "1") {
+      possible = true;
+    }
+
+    R.when(notPositioned && possible && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
   },
   "consequence": function (R) {
     //console.log("Rule activated: Yagura pawn")
@@ -27292,12 +27460,17 @@ var Mino = [////////////// 10
   "priority": 7,
   "condition": function (R) {
     var notPositioned = false;
+    var possible = false;
 
     if (this.piece == "G" && (this.column == 3 && this.row == 8 && this.player == "1" || this.column == 5 && this.row == 0 && this.player == "0")) {
       notPositioned = true;
     }
 
-    R.when(notPositioned && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+    if (this.possibleMoves.includes("14") && this.player == "0" || this.possibleMoves.includes("74") && this.player == "1") {
+      possible = true;
+    }
+
+    R.when(notPositioned && possible && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
   },
   "consequence": function (R) {
     //console.log("Rule activated: Yagura pawn")
@@ -27319,33 +27492,384 @@ var Mino = [////////////// 10
 module.exports = {
   Mino
 };
+},{}],"src/rules/Castles/PeerlessGold.js":[function(require,module,exports) {
+var PeerlessGold = [////////////// 10
+{
+  ///////Pawn
+  "priority": 10,
+  "condition": function (R) {
+    var notPositioned = false;
+    var possible = false;
+
+    if (this.piece == "P" && (this.column == 3 && this.row == 6 && this.player == "1" || this.column == 5 && this.row == 2 && this.player == "0")) {
+      notPositioned = true;
+    }
+
+    if (this.possibleMoves.includes("35") && this.player == "0" || this.possibleMoves.includes("53") && this.player == "1") {
+      possible = true;
+    }
+
+    R.when(notPositioned && possible && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+  },
+  "consequence": function (R) {
+    var new_position;
+
+    if (this.player == "0") {
+      new_position = "35";
+    } else {
+      new_position = "53";
+    }
+
+    var row = new_position.substr(0, 1);
+    var column = new_position.substr(1, 1);
+    this.priorities.push(10);
+    this.moves.push(row + column);
+    R.next();
+  }
+}, ////////////// 9
+{
+  ///////Pawn
+  "priority": 9,
+  "condition": function (R) {
+    var notPositioned = false;
+    var possible = false;
+
+    if (this.piece == "P" && (this.column == 2 && this.row == 6 && this.player == "1" || this.column == 6 && this.row == 2 && this.player == "0")) {
+      notPositioned = true;
+    }
+
+    if (this.possibleMoves.includes("36") && this.player == "0" || this.possibleMoves.includes("52") && this.player == "1") {
+      possible = true;
+    }
+
+    R.when(notPositioned && possible && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+  },
+  "consequence": function (R) {
+    var new_position;
+
+    if (this.player == "0") {
+      new_position = "36";
+    } else {
+      new_position = "52";
+    }
+
+    var row = new_position.substr(0, 1);
+    var column = new_position.substr(1, 1);
+    this.priorities.push(9);
+    this.moves.push(row + column);
+    R.next();
+  }
+}, {
+  ///////Bishop
+  "priority": 9,
+  "condition": function (R) {
+    var notPositioned = false;
+    var possible = false;
+
+    if (this.piece == "B" && (this.column == 1 && this.row == 7 && this.player == "1" || this.column == 7 && this.row == 1 && this.player == "0")) {
+      notPositioned = true;
+    }
+
+    if (this.possibleMoves.includes("26") && this.player == "0" || this.possibleMoves.includes("62") && this.player == "1") {
+      possible = true;
+    }
+
+    R.when(notPositioned && possible && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+  },
+  "consequence": function (R) {
+    //console.log("Rule activated: Yagura pawn")
+    var new_position;
+
+    if (this.player == "0") {
+      new_position = "26";
+    } else {
+      new_position = "62";
+    }
+
+    var row = new_position.substr(0, 1);
+    var column = new_position.substr(1, 1);
+    this.priorities.push(9);
+    this.moves.push(row + column);
+    R.next();
+  }
+}, ///////////////////////// 8 
+{
+  ///////Silver
+  "priority": 8,
+  "condition": function (R) {
+    var notPositioned = false;
+    var possible = false;
+
+    if (this.piece == "S" && (this.column == 2 && this.row == 8 && this.player == "1" || this.column == 6 && this.row == 0 && this.player == "0")) {
+      notPositioned = true;
+    }
+
+    if (this.possibleMoves.includes("16") && this.player == "0" || this.possibleMoves.includes("72") && this.player == "1") {
+      possible = true;
+    }
+
+    R.when(notPositioned && possible && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+  },
+  "consequence": function (R) {
+    //console.log("Rule activated: Yagura silver 1")
+    var new_position;
+
+    if (this.player == "0") {
+      new_position = "16";
+    } else {
+      new_position = "72";
+    }
+
+    var row = new_position.substr(0, 1);
+    var column = new_position.substr(1, 1);
+    this.priorities.push(8);
+    this.moves.push(row + column);
+    R.next();
+  }
+}, {
+  ///////Silver
+  "priority": 8,
+  "condition": function (R) {
+    var notPositioned = false;
+    var possible = false;
+
+    if (this.piece == "S" && (this.column == 2 && this.row == 7 && this.player == "1" || this.column == 6 && this.row == 1 && this.player == "0")) {
+      notPositioned = true;
+    }
+
+    if (this.possibleMoves.includes("25") && this.player == "0" || this.possibleMoves.includes("63") && this.player == "1") {
+      possible = true;
+    }
+
+    R.when(notPositioned && possible && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+  },
+  "consequence": function (R) {
+    //console.log("Rule activated: Yagura silver 1")
+    var new_position;
+
+    if (this.player == "0") {
+      new_position = "25";
+    } else {
+      new_position = "63";
+    }
+
+    var row = new_position.substr(0, 1);
+    var column = new_position.substr(1, 1);
+    this.priorities.push(8);
+    this.moves.push(row + column);
+    R.next();
+  }
+}, ///////////////////// 7 
+{
+  ///////Rook
+  "priority": 7,
+  "condition": function (R) {
+    var notPositioned = false;
+    var possible = false;
+
+    if (this.piece == "R" && (this.row == 7 && this.player == "1" || this.row == 1 && this.player == "0")) {
+      notPositioned = true;
+    }
+
+    if (this.possibleMoves.includes("17") && this.player == "0" || this.possibleMoves.includes("71") && this.player == "1") {
+      possible = true;
+    }
+
+    R.when(notPositioned && possible && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+  },
+  "consequence": function (R) {
+    //console.log("Rule activated: Yagura silver 1")
+    var new_position;
+
+    if (this.player == "0") {
+      new_position = "17";
+    } else {
+      new_position = "71";
+    }
+
+    var row = new_position.substr(0, 1);
+    var column = new_position.substr(1, 1);
+    this.priorities.push(7);
+    this.moves.push(row + column);
+    R.next();
+  }
+}, ///////////////// 6 
+{
+  ///////King
+  "priority": 6,
+  "condition": function (R) {
+    var notPositioned = false;
+    var possible = false;
+
+    if (this.piece == "KING" && (this.column == 4 && this.row == 8 && this.player == "1" || this.column == 4 && this.row == 0 && this.player == "0")) {
+      notPositioned = true;
+    }
+
+    if (this.possibleMoves.includes("13") && this.player == "0" || this.possibleMoves.includes("75") && this.player == "1") {
+      possible = true;
+    }
+
+    R.when(notPositioned && possible && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+  },
+  "consequence": function (R) {
+    //console.log("Rule activated: Yagura pawn")
+    var new_position;
+
+    if (this.player == "0") {
+      new_position = "13";
+    } else {
+      new_position = "75";
+    }
+
+    var row = new_position.substr(0, 1);
+    var column = new_position.substr(1, 1);
+    this.priorities.push(6);
+    this.moves.push(row + column);
+    R.next();
+  }
+}, {
+  ///////King
+  "priority": 6,
+  "condition": function (R) {
+    var notPositioned = false;
+    var possible = false;
+
+    if (this.piece == "KING" && (this.column == 5 && this.row == 7 && this.player == "1" || this.column == 3 && this.row == 1 && this.player == "0")) {
+      notPositioned = true;
+    }
+
+    if (this.possibleMoves.includes("12") && this.player == "0" || this.possibleMoves.includes("76") && this.player == "1") {
+      possible = true;
+    }
+
+    R.when(notPositioned && possible && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+  },
+  "consequence": function (R) {
+    //console.log("Rule activated: Yagura pawn")
+    var new_position;
+
+    if (this.player == "0") {
+      new_position = "12";
+    } else {
+      new_position = "76";
+    }
+
+    var row = new_position.substr(0, 1);
+    var column = new_position.substr(1, 1);
+    this.priorities.push(6);
+    this.moves.push(row + column);
+    R.next();
+  }
+}, //////////////// 4
+{
+  ///////Silver
+  "priority": 4,
+  "condition": function (R) {
+    var notPositioned = false;
+    var possible = false;
+
+    if (this.piece == "S" && (this.column == 6 && this.row == 8 && this.player == "1" || this.column == 2 && this.row == 0 && this.player == "0")) {
+      notPositioned = true;
+    }
+
+    if (this.possibleMoves.includes("11") && this.player == "0" || this.possibleMoves.includes("77") && this.player == "1") {
+      possible = true;
+    }
+
+    R.when(notPositioned && possible && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+  },
+  "consequence": function (R) {
+    //console.log("Rule activated: Yagura pawn")
+    var new_position;
+
+    if (this.player == "0") {
+      new_position = "11";
+    } else {
+      new_position = "77";
+    }
+
+    var row = new_position.substr(0, 1);
+    var column = new_position.substr(1, 1);
+    this.priorities.push(4);
+    this.moves.push(row + column);
+    R.next();
+  }
+}, {
+  ///////Golden
+  "priority": 4,
+  "condition": function (R) {
+    var notPositioned = false;
+    var possible = false;
+
+    if (this.piece == "G" && (this.column == 5 && this.row == 8 && this.player == "1" || this.column == 3 && this.row == 0 && this.player == "0")) {
+      notPositioned = true;
+    }
+
+    if (this.possibleMoves.includes("13") && this.player == "0" || this.possibleMoves.includes("75") && this.player == "1") {
+      possible = true;
+    }
+
+    R.when(notPositioned && possible && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+  },
+  "consequence": function (R) {
+    //console.log("Rule activated: Yagura pawn")
+    var new_position;
+
+    if (this.player == "0") {
+      new_position = "13";
+    } else {
+      new_position = "75";
+    }
+
+    var row = new_position.substr(0, 1);
+    var column = new_position.substr(1, 1);
+    this.priorities.push(4);
+    this.moves.push(row + column);
+    R.next();
+  }
+}, {
+  ///////Golden
+  "priority": 4,
+  "condition": function (R) {
+    var notPositioned = false;
+    var possible = false;
+
+    if (this.piece == "G" && (this.column == 3 && this.row == 8 && this.player == "1" || this.column == 5 && this.row == 0 && this.player == "0")) {
+      notPositioned = true;
+    }
+
+    if (this.possibleMoves.includes("14") && this.player == "0" || this.possibleMoves.includes("74") && this.player == "1") {
+      possible = true;
+    }
+
+    R.when(notPositioned && possible && this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
+  },
+  "consequence": function (R) {
+    //console.log("Rule activated: Yagura pawn")
+    var new_position;
+
+    if (this.player == "0") {
+      new_position = "14";
+    } else {
+      new_position = "74";
+    }
+
+    var row = new_position.substr(0, 1);
+    var column = new_position.substr(1, 1);
+    this.priorities.push(4);
+    this.moves.push(row + column);
+    R.next();
+  }
+}];
+module.exports = {
+  PeerlessGold
+};
 },{}],"src/rules/BasicRules.js":[function(require,module,exports) {
 "use strict";
 
 var _Game = require("../Game.js");
 
 var BasicRules = [{
-  ///////moveRandom
-  "priority": 5,
-  "condition": function (R) {
-    //console.log("Rule: moveRandom")
-    R.when(this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0");
-  },
-  "consequence": function (R) {
-    //console.log("Rule activated: moveRandom")
-    //var state = require('./ShogiRBS.js')
-    //var G = state.G
-    var rand = parseInt(Math.random() * (this.possibleMoves.length - 0) + 0);
-    var new_position = this.possibleMoves[rand];
-    var row = new_position.substr(0, 1);
-    var column = new_position.substr(1, 1); //this.result = true;
-    // this.priorities.push(0)
-    // this.moves.push(row+column)  
-    //console.log(this);
-
-    R.next();
-  }
-}, {
   ///////Capture
   "priority": 5,
   "condition": function (R) {
@@ -27372,7 +27896,7 @@ var BasicRules = [{
     //console.log(row)
     //console.log(column)
 
-    this.priorities.push(0);
+    this.priorities.push(5);
     this.moves.push(row + column); //console.log(this);
 
     R.next();
@@ -27517,7 +28041,7 @@ var BasicRules = [{
           var column = move.substr(1, 1); //console.log(row+column)
 
           this.moves.push(row + column);
-          this.priorities.push(this.value);
+          this.priorities.push(2);
         }
       }
     }
@@ -27548,6 +28072,29 @@ var BasicRules = [{
       this.moves.push(row + column);
       this.priorities.push(1);
     }
+
+    R.next();
+  }
+}, {
+  ///////moveRandom
+  "priority": 0,
+  "condition": function (R) {
+    //console.log("Rule: moveRandom")
+    R.when(this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0" && this.moves == "");
+  },
+  "consequence": function (R) {
+    console.log("Rule activated: moveRandom"); //var state = require('./ShogiRBS.js')
+    //var G = state.G
+
+    var rand = parseInt(Math.random() * (this.possibleMoves.length - 0) + 0);
+    var new_position = this.possibleMoves[rand];
+    var row = new_position.substr(0, 1);
+    var column = new_position.substr(1, 1); //this.result = true;
+
+    this.priorities.push(-5);
+    this.moves.push(row + column);
+    console.log(this);
+    console.log(row + column); //console.log(this);
 
     R.next();
   }
@@ -27927,32 +28474,20 @@ async function getBestMove(moves, state, node_depth, last_move, fn) {
           });
         };
 
-        let new_moves = await first_node_promise();
+        let new_moves = await first_node_promise(); //////////////Recursive Minmax///////////////
 
-        if (new_moves != "") {
-          //////////////Recursive Minmax///////////////
-          let callMinmaxLoop = function func() {
-            return new Promise((resolve, reject) => {
-              //console.log("lets loop " + depth)
-              getBestMove(new_moves, state, node_depth, possibleMoves[i], function (result) {
-                resolve(result);
-              });
+        let callMinmaxLoop = function func() {
+          return new Promise((resolve, reject) => {
+            //console.log("lets loop " + depth)
+            getBestMove(new_moves, state, node_depth, possibleMoves[i], function (result) {
+              resolve(result);
             });
-          };
+          });
+        };
 
-          var heur = await callMinmaxLoop();
-          heuristics.push(heur);
-          resolve(heuristics);
-        } else {
-          console.log("NO MOVES SBC");
-          console.log(getHeuristic(state, node_depth));
-          console.log(myPreviousMove);
-          var leaf = [];
-          leaf.push(getHeuristic(state, node_depth));
-          leaf.push(myPreviousMove);
-          heuristics.push(leaf);
-          resolve(heuristics);
-        }
+        var heur = await callMinmaxLoop();
+        heuristics.push(heur);
+        resolve(heuristics);
       });
     });
   };
@@ -28123,6 +28658,10 @@ function getAllRules(ruleSet) {
     if (ruleSet[0][i] == "Mino") {
       importedRules.push(require('./rules/Castles/Mino.js').Mino);
     }
+
+    if (ruleSet[0][i] == "PeerlessGold") {
+      importedRules.push(require('./rules/Castles/PeerlessGold.js').PeerlessGold);
+    }
   }
 
   importedRules.push(require('./rules/BasicRules.js').BasicRules);
@@ -28276,7 +28815,7 @@ function getValueOfPiece(piece, isHand) {
 
   return value;
 }
-},{"./GameRBS.js":"src/GameRBS.js","./StrategyRBS.js":"src/StrategyRBS.js","./Game.js":"src/Game.js","./rules/OpeningRookRules/StaticRookRules.js":"src/rules/OpeningRookRules/StaticRookRules.js","./rules/OpeningRookRules/RangingRookRules.js":"src/rules/OpeningRookRules/RangingRookRules.js","./rules/Castles/Yagura.js":"src/rules/Castles/Yagura.js","./rules/Castles/Boat.js":"src/rules/Castles/Boat.js","./rules/Castles/Mino.js":"src/rules/Castles/Mino.js","./rules/BasicRules.js":"src/rules/BasicRules.js"}],"src/img/lance_r.png":[function(require,module,exports) {
+},{"./GameRBS.js":"src/GameRBS.js","./StrategyRBS.js":"src/StrategyRBS.js","./Game.js":"src/Game.js","./rules/OpeningRookRules/StaticRookRules.js":"src/rules/OpeningRookRules/StaticRookRules.js","./rules/OpeningRookRules/RangingRookRules.js":"src/rules/OpeningRookRules/RangingRookRules.js","./rules/Castles/Yagura.js":"src/rules/Castles/Yagura.js","./rules/Castles/Boat.js":"src/rules/Castles/Boat.js","./rules/Castles/Mino.js":"src/rules/Castles/Mino.js","./rules/Castles/PeerlessGold.js":"src/rules/Castles/PeerlessGold.js","./rules/BasicRules.js":"src/rules/BasicRules.js"}],"src/img/lance_r.png":[function(require,module,exports) {
 module.exports = "/lance_r.3e2efd90.png";
 },{}],"src/img/pawn_r.png":[function(require,module,exports) {
 module.exports = "/pawn_r.fb1d92e7.png";
@@ -28798,7 +29337,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "49355" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "60523" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

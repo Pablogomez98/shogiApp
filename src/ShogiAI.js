@@ -174,7 +174,7 @@ async function getBestMove(moves,state,node_depth,last_move,fn) {
             });
           }; 
           let new_moves = await first_node_promise()
-          if (new_moves!=""){
+
         //////////////Recursive Minmax///////////////
         let callMinmaxLoop = function func(){
           return new Promise((resolve,reject)=>{
@@ -188,17 +188,6 @@ async function getBestMove(moves,state,node_depth,last_move,fn) {
         var heur = await callMinmaxLoop()
         heuristics.push(heur) 
         resolve(heuristics)  
-      }
-      else{
-        console.log("NO MOVES SBC")
-        console.log(getHeuristic(state, node_depth))
-        console.log(myPreviousMove)
-        var leaf = []
-        leaf.push(getHeuristic(state, node_depth))
-        leaf.push(myPreviousMove)
-        heuristics.push(leaf) 
-        resolve(heuristics) 
-      }
     });
     })
   }
@@ -335,6 +324,7 @@ function getAllRules(ruleSet){
     if(ruleSet[0][i]=="Yagura"){importedRules.push(require('./rules/Castles/Yagura.js').Yagura)}
     if(ruleSet[0][i]=="Boat"){importedRules.push(require('./rules/Castles/Boat.js').Boat)}
     if(ruleSet[0][i]=="Mino"){importedRules.push(require('./rules/Castles/Mino.js').Mino)}
+    if(ruleSet[0][i]=="PeerlessGold"){importedRules.push(require('./rules/Castles/PeerlessGold.js').PeerlessGold)}
   }
   importedRules.push(require('./rules/BasicRules.js').BasicRules)
   for(let i=0;i<importedRules.length;i++){
