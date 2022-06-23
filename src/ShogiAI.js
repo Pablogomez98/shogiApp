@@ -5,7 +5,7 @@ import { movePiece, revivePiece, isCheck} from './Game.js';
 var player 
 var currentPlayer
 var rivalPlayer
-var depth = 4
+var depth = 3
 
 export async function requestMoveAI(event){
   var startTime = performance.now()
