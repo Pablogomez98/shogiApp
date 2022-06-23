@@ -23,8 +23,8 @@ export async function executeStrategyEngine(gameState,fn){
         });
     };  
     let facts = await result_facts(); 
-    console.log("Strategy facts: " )  
-    console.log(facts)  
+    //console.log("Strategy facts: " )  
+    //console.log(facts)  
     let rules = []
         for (let fact of facts) {
             let m = await new Promise(resolve => 

@@ -26072,9 +26072,9 @@ async function executeStrategyEngine(gameState, fn) {
     });
   };
 
-  let facts = await result_facts();
-  console.log("Strategy facts: ");
-  console.log(facts);
+  let facts = await result_facts(); //console.log("Strategy facts: " )  
+  //console.log(facts)  
+
   let rules = [];
 
   for (let fact of facts) {
@@ -28067,15 +28067,15 @@ var BasicRules = [{
     R.when(this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.moves == "");
   },
   "consequence": function (R) {
-    console.log("Rule activated: moveRandom"); //var state = require('./ShogiRBS.js')
+    //console.log("Rule activated: moveRandom")
+    //var state = require('./ShogiRBS.js')
     //var G = state.G
-
     var rand = parseInt(Math.random() * (this.possibleMoves.length - 0) + 0);
     var new_position = this.possibleMoves[rand];
     var row = new_position.substr(0, 1);
     var column = new_position.substr(1, 1); //this.result = true;
 
-    this.priorities.push(-5);
+    this.priorities.push(-0.25);
     this.moves.push(row + column); //console.log(this);
     //console.log(row+column)
     //console.log(this);
@@ -28283,9 +28283,10 @@ var _Game = require("./Game.js");
 var player;
 var currentPlayer;
 var rivalPlayer;
-var depth = 3;
+var depth = 4;
 
 async function requestMoveAI(event) {
+  var startTime = performance.now();
   var client = event.currentTarget.parameter;
   var state = client.getState();
   player = state.ctx.currentPlayer;
@@ -28307,8 +28308,8 @@ async function requestMoveAI(event) {
   };
 
   let ruleSet = await getRuleSet();
-  var rules = getAllRules(ruleSet);
-  console.log(rules); /////////////// Primer nodo => 
+  var rules = getAllRules(ruleSet); //console.log(rules)
+  /////////////// Primer nodo => 
 
   var first_node_promise = function func() {
     return new Promise((resolve, reject) => {
@@ -28330,6 +28331,8 @@ async function requestMoveAI(event) {
   };
 
   var bestmove = await minmax_promise();
+  var endTime = performance.now();
+  console.log(endTime - startTime);
   let row_id = parseInt(bestmove[0]);
   let column_id = parseInt(bestmove[1]);
   let row_target = parseInt(bestmove[2].substr(0, 1));
@@ -28399,9 +28402,9 @@ async function getBestMove(moves, state, node_depth, last_move, fn) {
   possibleMoves = possibleMoves.filter(function (element) {
     return element !== undefined;
   }); //console.log(myPreviousMove)
-
-  console.log("Todos los hijos de : " + node_depth);
-  console.log(possibleStates); //console.log("Possible Scores: ")
+  //console.log("Todos los hijos de : "+ node_depth)
+  //console.log(possibleStates);
+  //console.log("Possible Scores: ")
   //console.log(possibleScores);
   //////////////CHECK STOP OR BOTTOM LEVEL////////////////////
 
@@ -28412,12 +28415,12 @@ async function getBestMove(moves, state, node_depth, last_move, fn) {
     var retorno = [];
 
     if (depth % 2 == 0) {
-      console.log("Bottom node. Min heurístic: " + getMinScore(possibleScores) + " y movimiento: " + myPreviousMove);
+      //console.log("Bottom node. Min heurístic: " + getMinScore(possibleScores) + " y movimiento: " + myPreviousMove) ;
       retorno.push(getMinScore(possibleScores));
       retorno.push(myPreviousMove);
       return fn(retorno);
     } else {
-      console.log("Bottom node. Max heurístic: " + getMaxScore(possibleScores) + " y movimiento: " + myPreviousMove);
+      //console.log("Bottom node. Max heurístic: " + getMaxScore(possibleScores) + " y movimiento: " + myPreviousMove);
       retorno.push(getMaxScore(possibleScores));
       retorno.push(myPreviousMove);
       return fn(retorno);
@@ -28488,20 +28491,18 @@ async function getBestMove(moves, state, node_depth, last_move, fn) {
 
   if (node_depth == 1) {
     let maxMove = -1000000000000000;
-    let bestmov;
-    console.log("FINAL MOVE: ");
+    let bestmov; //console.log("FINAL MOVE: ")
 
     for (let h of heuristicas) {
-      console.log("Move: " + h[1]);
-      console.log("H: " + h[0]);
-
+      //console.log("Move: " + h[1])
+      //console.log("H: " + h[0])
       if (h[0] > maxMove) {
         maxMove = h[0];
         bestmov = h[1];
       }
-    }
+    } //console.log(bestmov)
 
-    console.log(bestmov);
+
     fn(bestmov);
   } else {
     ///////////////////////////console.log("Navigatin through node " +currentPlayer+player )
@@ -28509,12 +28510,12 @@ async function getBestMove(moves, state, node_depth, last_move, fn) {
     var retorno = []; //console.log(heuristicas)
 
     if ((node_depth - 1) % 2 == 1) {
-      console.log("Nav node de: " + (node_depth - 1) + ". Min heurístic: " + getMin(heuristicas) + " y movimiento: " + myPreviousMove);
+      //console.log("Nav node de: "+ (node_depth-1) +". Min heurístic: " + getMin(heuristicas)+ " y movimiento: " + myPreviousMove) ;
       retorno.push(getMin(heuristicas));
       retorno.push(myPreviousMove);
       return fn(retorno);
     } else {
-      console.log("Nav node de: " + (node_depth - 1) + ". Max heurístic: " + getMax(heuristicas) + " y movimiento: " + myPreviousMove);
+      //console.log("Nav node de: "+ (node_depth-1) +". Max heurístic: " + getMax(heuristicas)+" y movimiento: " +myPreviousMove); 
       retorno.push(getMax(heuristicas));
       retorno.push(myPreviousMove);
       return fn(retorno);
@@ -28532,9 +28533,9 @@ async function getMovesKBS(state, rules, fn) {
   };
 
   let moves = await resultKBS();
-  moves = Array.from(new Set(moves.map(JSON.stringify)), JSON.parse);
-  console.log("Resultado del SBC: ");
-  console.log(moves); //console.log(state.G.cells)
+  moves = Array.from(new Set(moves.map(JSON.stringify)), JSON.parse); //console.log("Resultado del SBC: ");
+  //console.log(moves);
+  //console.log(state.G.cells)
 
   fn(moves);
 }
@@ -28657,7 +28658,6 @@ function getAllRules(ruleSet) {
     }
   }
 
-  console.log(rules);
   return rules;
 }
 

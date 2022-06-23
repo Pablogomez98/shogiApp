@@ -198,15 +198,15 @@ var BasicRules = [
                 );
         },
         "consequence": function(R) {
-            console.log("Rule activated: moveRandom")
+            //console.log("Rule activated: moveRandom")
             //var state = require('./ShogiRBS.js')
             //var G = state.G
-            var rand = parseInt(Math.random() * (this.possibleMoves.length - 0) + 0);
+            var rand = parseInt(Math.random() * ((this.possibleMoves.length-1) - 0) + 0);
             var new_position = this.possibleMoves[rand]
             var row = new_position.substr(0,1)
             var column = new_position.substr(1,1)
             //this.result = true;
-            this.priorities.push(-5)
+            this.priorities.push(-0.25)
             this.moves.push(row+column)  
             //console.log(this);
             //console.log(row+column)
