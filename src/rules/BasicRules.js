@@ -29,7 +29,7 @@ var BasicRules = [
             //console.log(thread)
             //console.log(row)
             //console.log(column)
-            this.priorities.push(5)
+            this.priorities.push(3)
             this.moves.push(row+column)
             //console.log(this);
             R.next();
@@ -115,39 +115,12 @@ var BasicRules = [
                 var column = mv.substr(1,1)
                 //console.log(row+column)
                 this.moves.push(row+column)
-                this.priorities.push(5)
+                this.priorities.push(0)
             }
             R.next();
         }
     },
 
-   /* {///////Defend
-        "priority": 5,
-        "condition": function(R) {
-            var forkMoves	
-            if(this.player==this.state.ctx.currentPlayer){
-                forkMoves = doesFork(this.state,this.possibleMoves,this)
-            }
-            //console.log(threads)
-            R.when(
-                this.player==this.state.ctx.currentPlayer 
-                && forkMoves!="" 
-                );
-        },
-        "consequence": function(R) {
-            console.log("Rule activated: Fork")
-            let forkMoves = doesFork(this.state,this.possibleMoves,this)
-            for(let mv of forkMoves){
-                var row = mv.substr(0,1)
-                var column = mv.substr(1,1)
-                console.log(row+column)
-                this.moves.push(row+column)
-                this.priorities.push(5)
-            }
-            R.next();
-        }
-    },*/
-  
     {///////Scape
         "priority": 5,
         "condition": function(R) {	
@@ -213,6 +186,7 @@ var BasicRules = [
             R.next();
         }
     },
+
     {///////moveRandom
         "priority": 0,
         "condition": function(R) {	
@@ -220,7 +194,6 @@ var BasicRules = [
             R.when(
                 this.possibleMoves!="" 
                 && this.player==this.state.ctx.currentPlayer 
-                && this.isHand=="0"
                 && this.moves ==""
                 );
         },
@@ -235,12 +208,12 @@ var BasicRules = [
             //this.result = true;
             this.priorities.push(-5)
             this.moves.push(row+column)  
-            console.log(this);
-            console.log(row+column)
+            //console.log(this);
+            //console.log(row+column)
             //console.log(this);
             R.next();
         }
-    },
+    }
 
 ]
 

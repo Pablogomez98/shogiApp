@@ -20330,14 +20330,12 @@ const Shogi = {
       if (still_check) {
         return _core.INVALID_MOVE;
       } ////////////////////////////////////////////////////////////////    
-      /////////////////////////// PROMOCIÓN ////////////////////////////// REVISAR!!!!!!!!!!!!!!
+      /////////////////////////// PROMOCIÓN //////////////////////////////
 
 
       let arised_piece = player_piece.substr(0, 1);
 
       if ((target_row >= 6 && ctx.currentPlayer == 0 || target_row <= 2 && ctx.currentPlayer == 1 || initial_row >= 6 && ctx.currentPlayer == 0 || initial_row <= 2 && ctx.currentPlayer == 1) && player_piece != "KING" && player_piece != "G" && arised_piece != "A") {
-        arisePiece(G, ctx.currentPlayer.concat(player_piece), target_row, target_column);
-
         if (confirm("Arise piece?")) {
           arisePiece(G, ctx.currentPlayer.concat(player_piece), target_row, target_column);
         }
@@ -21705,9 +21703,6 @@ function movePiece(G, ctx, initial_row, initial_column, target_row, target_colum
 
   if ((target_row >= 6 && ctx.currentPlayer == 0 || target_row <= 2 && ctx.currentPlayer == 1 || initial_row >= 6 && ctx.currentPlayer == 0 || initial_row <= 2 && ctx.currentPlayer == 1) && player_piece != "KING" && player_piece != "G" && arised_piece != "A") {
     arisePiece(G, ctx.currentPlayer.concat(player_piece), target_row, target_column);
-    /*if (confirm("Arise piece?")) {
-    arisePiece(G,ctx.currentPlayer.concat(player_piece),target_row,target_column);
-    }*/
   } ///////////////////////////////////////////////////////////////////
 
 
@@ -25711,23 +25706,41 @@ async function executeEngine(gameState, rules, fn) {
   let facts = await result_facts();
   let moves = [];
   let final_moves = [];
+  let max_random = 0;
 
   for (let fact of facts) {
     let m = await new Promise(resolve => R.execute(fact, function (data) {
       if (data.moves[0] != null) {
-        //console.log("Movimiento:" + data.moves + " Prioridad: " + data.priorities)
+        //console.log("Movimiento:" + data.moves + " Prioridad: " + data.priorities
         moves = [];
 
         for (let [index, mv] of data.moves.entries()) {
-          var move_info = [];
-          move_info.push(data.row);
-          move_info.push(data.column);
-          move_info.push(mv);
-          move_info.push(data.piece);
-          move_info.push(data.isHand);
-          move_info.push(data.priorities[index]);
-          moves.push(move_info);
-          resolve(moves);
+          if (data.priorities[index] < 0) {
+            if (max_random < 4) {
+              max_random = max_random + 1;
+              var move_info = [];
+              move_info.push(data.row);
+              move_info.push(data.column);
+              move_info.push(mv);
+              move_info.push(data.piece);
+              move_info.push(data.isHand);
+              move_info.push(data.priorities[index]);
+              moves.push(move_info);
+              resolve(moves);
+            } else {
+              resolve("");
+            }
+          } else {
+            var move_info = [];
+            move_info.push(data.row);
+            move_info.push(data.column);
+            move_info.push(mv);
+            move_info.push(data.piece);
+            move_info.push(data.isHand);
+            move_info.push(data.priorities[index]);
+            moves.push(move_info);
+            resolve(moves);
+          }
         }
       } else {
         resolve("");
@@ -25923,8 +25936,7 @@ var StrategyRules = [{
   ///////rook strategy
   "condition": function (R) {
     //console.log("Rule: define rook strategy")
-    console.log(this.state.ctx.currentPlayer);
-    R.when(this.rook == null && this.player == this.state.ctx.currentPlayer && this.phase == 0);
+    R.when(this.rook == null && this.player == this.state.ctx.currentPlayer);
   },
   "consequence": function (R) {
     // console.log("Rule activated: define rook strategy")
@@ -26119,8 +26131,7 @@ function createFact(state, player_id) {
     "oposing_rook": rooks[rival_id],
     "castle": null,
     "state": state,
-    "strategy": ruleSet,
-    "phase": 0
+    "strategy": ruleSet
   };
   return factName;
 }
@@ -26275,7 +26286,7 @@ var StaticRookRules = [{
   }
 }, {
   ///////Advance Pawn
-  "priority": 5,
+  "priority": 8,
   "condition": function (R) {
     var notPositioned = false;
 
@@ -26468,7 +26479,7 @@ var Yagura = [{
   }
 }, {
   ///////Silver
-  "priority": 8,
+  //"priority":8,
   "condition": function (R) {
     //console.log("Rule: Yagura silver 2")
     var notPositioned = false;
@@ -27896,7 +27907,7 @@ var BasicRules = [{
     //console.log(row)
     //console.log(column)
 
-    this.priorities.push(5);
+    this.priorities.push(3);
     this.moves.push(row + column); //console.log(this);
 
     R.next();
@@ -27978,39 +27989,12 @@ var BasicRules = [{
       var column = mv.substr(1, 1); //console.log(row+column)
 
       this.moves.push(row + column);
-      this.priorities.push(5);
+      this.priorities.push(0);
     }
 
     R.next();
   }
-},
-/* {///////Defend
-     "priority": 5,
-     "condition": function(R) {
-         var forkMoves	
-         if(this.player==this.state.ctx.currentPlayer){
-             forkMoves = doesFork(this.state,this.possibleMoves,this)
-         }
-         //console.log(threads)
-         R.when(
-             this.player==this.state.ctx.currentPlayer 
-             && forkMoves!="" 
-             );
-     },
-     "consequence": function(R) {
-         console.log("Rule activated: Fork")
-         let forkMoves = doesFork(this.state,this.possibleMoves,this)
-         for(let mv of forkMoves){
-             var row = mv.substr(0,1)
-             var column = mv.substr(1,1)
-             console.log(row+column)
-             this.moves.push(row+column)
-             this.priorities.push(5)
-         }
-         R.next();
-     }
- },*/
-{
+}, {
   ///////Scape
   "priority": 5,
   "condition": function (R) {
@@ -28080,7 +28064,7 @@ var BasicRules = [{
   "priority": 0,
   "condition": function (R) {
     //console.log("Rule: moveRandom")
-    R.when(this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.isHand == "0" && this.moves == "");
+    R.when(this.possibleMoves != "" && this.player == this.state.ctx.currentPlayer && this.moves == "");
   },
   "consequence": function (R) {
     console.log("Rule activated: moveRandom"); //var state = require('./ShogiRBS.js')
@@ -28092,9 +28076,9 @@ var BasicRules = [{
     var column = new_position.substr(1, 1); //this.result = true;
 
     this.priorities.push(-5);
-    this.moves.push(row + column);
-    console.log(this);
-    console.log(row + column); //console.log(this);
+    this.moves.push(row + column); //console.log(this);
+    //console.log(row+column)
+    //console.log(this);
 
     R.next();
   }
@@ -28299,7 +28283,7 @@ var _Game = require("./Game.js");
 var player;
 var currentPlayer;
 var rivalPlayer;
-var depth = 2;
+var depth = 3;
 
 async function requestMoveAI(event) {
   var client = event.currentTarget.parameter;
@@ -28323,7 +28307,8 @@ async function requestMoveAI(event) {
   };
 
   let ruleSet = await getRuleSet();
-  var rules = getAllRules(ruleSet); /////////////// Primer nodo => 
+  var rules = getAllRules(ruleSet);
+  console.log(rules); /////////////// Primer nodo => 
 
   var first_node_promise = function func() {
     return new Promise((resolve, reject) => {
@@ -28631,7 +28616,7 @@ function getHeuristic(new_state, node_depth) {
   // console.log("Priority: Player: "+ new_state.player_priority)
   //console.log("Rival: " + new_state.rival_priority)
 
-  return player_score - rival_score + multiplier * check + (new_state.player_priority - new_state.rival_priority) * 9;
+  return player_score - rival_score + (new_state.player_priority - new_state.rival_priority) * 9;
 }
 
 function getAllRules(ruleSet) {
@@ -28670,9 +28655,9 @@ function getAllRules(ruleSet) {
     for (let j = 0; j < importedRules[i].length; j++) {
       rules.push(importedRules[i][j]);
     }
-  } //console.log(rules)
+  }
 
-
+  console.log(rules);
   return rules;
 }
 
@@ -29337,7 +29322,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "60523" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "49528" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

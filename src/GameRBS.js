@@ -27,13 +27,30 @@ export async function executeEngine(gameState,rules,fn){
     let facts = await result_facts(); 
     let moves = []
     let final_moves = []
+    let max_random = 0
         for (let fact of facts) {
             let m = await new Promise(resolve => 
                 R.execute(fact, function (data) {
                     if (data.moves[0]!=null) {
-                        //console.log("Movimiento:" + data.moves + " Prioridad: " + data.priorities)
+                        //console.log("Movimiento:" + data.moves + " Prioridad: " + data.priorities
                         moves = []
                         for (let [index ,mv] of data.moves.entries()){
+                            if(data.priorities[index]<0){
+                                if(max_random<4){
+                                max_random = max_random + 1
+                                var move_info = []                  
+                                move_info.push(data.row)
+                                move_info.push(data.column)
+                                move_info.push(mv)
+                                move_info.push(data.piece)
+                                move_info.push(data.isHand)
+                                move_info.push(data.priorities[index])
+                                moves.push(move_info)
+                                resolve(moves) 
+                                }
+                                else{resolve("")}
+                            }
+                            else{
                             var move_info = []                  
                             move_info.push(data.row)
                             move_info.push(data.column)
@@ -43,6 +60,7 @@ export async function executeEngine(gameState,rules,fn){
                             move_info.push(data.priorities[index])
                             moves.push(move_info)
                             resolve(moves) 
+                            }
                         }  
                         
                     } 

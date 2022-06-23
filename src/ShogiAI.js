@@ -5,7 +5,7 @@ import { movePiece, revivePiece, isCheck} from './Game.js';
 var player 
 var currentPlayer
 var rivalPlayer
-var depth = 2
+var depth = 3
 
 export async function requestMoveAI(event){
   var client = event.currentTarget.parameter
@@ -26,7 +26,7 @@ export async function requestMoveAI(event){
   let ruleSet = await getRuleSet();
 
   var rules = getAllRules(ruleSet)
-
+  console.log(rules)
   /////////////// Primer nodo => 
   var first_node_promise =  function func(){
     return new Promise((resolve ,reject)=>{
@@ -310,7 +310,7 @@ function getHeuristic(new_state, node_depth){
   //console.log("puntuación: " + player_score + ".Rival score: " + rival_score)
   // console.log("Priority: Player: "+ new_state.player_priority)
   //console.log("Rival: " + new_state.rival_priority)
-  return (player_score-rival_score) + (multiplier*check) + (new_state.player_priority-new_state.rival_priority)*9
+  return (player_score-rival_score) + (new_state.player_priority-new_state.rival_priority)*9
 
 }
 
@@ -332,7 +332,7 @@ function getAllRules(ruleSet){
       rules.push(importedRules[i][j])
     }
   }
-  //console.log(rules)
+  console.log(rules)
   return rules
 }
 

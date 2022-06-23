@@ -44,7 +44,7 @@ var StaticRookRules = [
             }
         },
         {///////Advance Pawn
-            "priority":5,
+            "priority":8,
             "condition": function(R) {	
                 var notPositioned = false 
                 if(this.piece=="P" && ((this.column==1 && this.row==4 && this.player=="0")||(this.column==7 && this.row==4 && this.player=="1"))){notPositioned=true}

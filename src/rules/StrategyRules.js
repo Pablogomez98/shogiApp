@@ -4,11 +4,9 @@ var StrategyRules = [
     {///////rook strategy
         "condition": function(R) {	
             //console.log("Rule: define rook strategy")
-            console.log(this.state.ctx.currentPlayer)
             R.when(
                 this.rook == null
                 && this.player==this.state.ctx.currentPlayer
-                && this.phase == 0
                 );
         },
         "consequence": function(R) {
@@ -114,7 +112,6 @@ var StrategyRules = [
             R.next();
         }
     },
-
     {///////PeerlesGold Castle set
 
         "condition": function(R) {	

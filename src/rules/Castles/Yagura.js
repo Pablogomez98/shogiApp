@@ -53,7 +53,7 @@ var Yagura = [
         },
 
         {///////Silver
-            "priority":8,
+            //"priority":8,
             "condition": function(R) {	
                 //console.log("Rule: Yagura silver 2")
                 var notPositioned = false 

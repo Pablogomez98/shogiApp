@@ -69,8 +69,7 @@ function createFact(state,player_id){
         "oposing_rook": rooks[rival_id],
         "castle" : null,
         "state" : state,
-        "strategy" : ruleSet,
-        "phase" : 0
+        "strategy" : ruleSet
     }
     return factName
 }
